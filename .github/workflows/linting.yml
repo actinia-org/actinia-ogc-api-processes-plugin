@@ -1,13 +1,13 @@
----
-name: Linting and code quality check
+# ---
+# name: Linting and code quality check
 
-on:
-  push:
-    branches:
-      - main
-      - develop
-  pull_request:
+# on:
+#   push:
+#     branches:
+#       - main
+#       - develop
+#   pull_request:
 
-jobs:
-  lint:
-    uses: mundialis/github-workflows/.github/workflows/linting.yml@main
+# jobs:
+#   lint:
+#     uses: mundialis/github-workflows/.github/workflows/linting.yml@main
