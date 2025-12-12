@@ -1,0 +1,47 @@
+---
+
+# SPDX-FileCopyrightText: (c) 2018-2025 by mundialis GmbH & Co. KG
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+version: "3"
+services:
+
+  actinia:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ..:/src/actinia-ogc-api-processes-plugin/.
+    ports:
+      - "8088:8088"
+    depends_on:
+      - valkey
+    cap_add:
+      - SYS_PTRACE
+    networks:
+    -   actinia
+
+  valkey:
+    image: valkey/valkey:8.1-alpine
+    volumes:
+      - ./valkey_data:/data
+    environment:
+      - VALKEY_PASS_FILE=/data/config/.valkey
+    command: [
+      "sh", "-c",
+      '
+      docker-entrypoint.sh
+      "/data/config/valkey.conf"
+      --requirepass "$$(cat $$VALKEY_PASS_FILE)"
+      '
+    ]
+    ports:
+        - "6379:6379"
+    networks:
+    -   actinia
+
+networks:
+  actinia:
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16

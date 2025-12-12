@@ -1,0 +1,50 @@
+# Temporary and binary files
+*~
+*.py[cod]
+*.so
+*.cfg
+!setup.cfg
+!docker/actinia.cfg
+!docker/actinia-ogc-api-processes-plugin-test/actinia-ogc-api-processes-plugin-test.cfg
+*.orig
+*.log
+*.pot
+__pycache__/*
+.cache/*
+.*.swp
+*/.ipynb_checkpoints/*
+
+# Project files
+.ropeproject
+.project
+.pydevproject
+.settings
+.idea
+
+# Package files
+*.egg
+*.eggs/
+.installed.cfg
+*.egg-info
+
+# Unittest and coverage
+htmlcov/*
+.coverage
+.tox
+junit.xml
+coverage.xml
+
+# Build and docs folder/files
+build/*
+dist/*
+sdist/*
+
+# docker
+docker/valkey_data/dump.rdb
+!docker/actinia-ogc-api-processes-plugin-test/actinia-ogc-api-processes-plugin-test.cfg
+
+# linting with shared config file
+.pylintrc
+.pylintrc_allowed_to_fail
+ruff-github-workflows.toml
+ruff-merged.toml
