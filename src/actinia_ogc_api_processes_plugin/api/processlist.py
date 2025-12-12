@@ -49,4 +49,3 @@ class ProcessList(Resource):
             ),
         )
         return make_response(res, 405)
-
