@@ -15,6 +15,7 @@ from flask_restful_swagger_2 import Api
 
 from actinia_ogc_api_processes_plugin.api.processlist import ProcessList
 
+
 # endpoints loaded if run as actinia-core plugin as well as standalone app
 def create_endpoints(flask_api: Api) -> None:
     """Create plugin endpoints."""
