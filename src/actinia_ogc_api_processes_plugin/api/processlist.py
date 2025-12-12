@@ -16,7 +16,6 @@ from flask_restful_swagger_2 import Resource, swagger
 from requests.exceptions import ConnectionError  # noqa: A004
 
 from actinia_ogc_api_processes_plugin.apidocs import processlist
-
 from actinia_ogc_api_processes_plugin.core.processlist import get_modules
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
