@@ -1,106 +1,106 @@
-# ---
+---
 
-# name: actinia tests
+name: actinia tests
 
-# on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     # The branches below must be a subset of the branches above
-#     branches: [ main ]
+on:
+  push:
+    branches: [ main ]
+  # pull_request:
+  #   # The branches below must be a subset of the branches above
+  #   branches: [ main ]
 
-# jobs:
+jobs:
 
-#   unittests-G84:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v4
-#     - name: Set up Docker Buildx
-#       uses: docker/setup-buildx-action@v3
-#     - name: Replace run only unittest command
-#       run: |
-#         sed -i "s+# RUN make test+RUN make unittest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#     - name: Unittests of actinia-ogc-api-processes-plugin
-#       id: docker_build
-#       uses: docker/build-push-action@v6
-#       with:
-#         push: false
-#         tags: actinia-ogc-api-processes-plugin-tests:alpine
-#         context: .
-#         file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#         no-cache: true
-#         # pull: true
+  unittests-G84:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Replace run only unittest command
+      run: |
+        sed -i "s+# RUN make test+RUN make unittest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+    - name: Unittests of actinia-ogc-api-processes-plugin
+      id: docker_build
+      uses: docker/build-push-action@v6
+      with:
+        push: false
+        tags: actinia-ogc-api-processes-plugin-tests:alpine
+        context: .
+        file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+        no-cache: true
+        # pull: true
 
-#   integration-tests-G84:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v4
-#       # with:
-#       #   path: "."
-#     - name: Set up Docker Buildx
-#       uses: docker/setup-buildx-action@v3
-#     - name: Replace run integration test command
-#       run: |
-#         sed -i "s+# RUN make test+RUN make integrationtest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#     - name: Integration tests of actinia-ogc-api-processes-plugin
-#       id: docker_build
-#       uses: docker/build-push-action@v6
-#       with:
-#         push: false
-#         tags: actinia-ogc-api-processes-plugin-test:alpine
-#         context: .
-#         file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#         no-cache: true
-#         # pull: true
+  integration-tests-G84:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      # with:
+      #   path: "."
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Replace run integration test command
+      run: |
+        sed -i "s+# RUN make test+RUN make integrationtest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+    - name: Integration tests of actinia-ogc-api-processes-plugin
+      id: docker_build
+      uses: docker/build-push-action@v6
+      with:
+        push: false
+        tags: actinia-ogc-api-processes-plugin-test:alpine
+        context: .
+        file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+        no-cache: true
+        # pull: true
 
-#   unittests-G83:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v4
-#     - name: Set up Docker Buildx
-#       uses: docker/setup-buildx-action@v3
-#     - name: Replace actinia version (including GRASS version)
-#       run: |
-#           sed -i "s+mundialis/actinia:latest+mundialis/actinia:grass8.3+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#     - name: Replace run only unittest command
-#       run: |
-#         sed -i "s+# RUN make test+RUN make unittest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#     - name: Unittests of actinia-ogc-api-processes-plugin
-#       id: docker_build
-#       uses: docker/build-push-action@v6
-#       with:
-#         push: false
-#         tags: actinia-ogc-api-processes-plugin-tests:alpine
-#         context: .
-#         file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#         no-cache: true
-#         # pull: true
+  unittests-G83:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Replace actinia version (including GRASS version)
+      run: |
+          sed -i "s+mundialis/actinia:latest+mundialis/actinia:grass8.3+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+    - name: Replace run only unittest command
+      run: |
+        sed -i "s+# RUN make test+RUN make unittest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+    - name: Unittests of actinia-ogc-api-processes-plugin
+      id: docker_build
+      uses: docker/build-push-action@v6
+      with:
+        push: false
+        tags: actinia-ogc-api-processes-plugin-tests:alpine
+        context: .
+        file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+        no-cache: true
+        # pull: true
 
-#   integration-tests-G83:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v4
-#       # with:
-#       #   path: "."
-#     - name: Set up Docker Buildx
-#       uses: docker/setup-buildx-action@v3
-#     - name: Replace actinia version (including GRASS version)
-#       run: |
-#           sed -i "s+mundialis/actinia:latest+mundialis/actinia:grass8.3+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#     - name: Replace run integration test command
-#       run: |
-#         sed -i "s+# RUN make test+RUN make integrationtest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#     - name: Integration tests of actinia-ogc-api-processes-plugin
-#       id: docker_build
-#       uses: docker/build-push-action@v6
-#       with:
-#         push: false
-#         tags: actinia-ogc-api-processes-plugin-test:alpine
-#         context: .
-#         file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
-#         no-cache: true
-#         # pull: true
+  integration-tests-G83:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      # with:
+      #   path: "."
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Replace actinia version (including GRASS version)
+      run: |
+          sed -i "s+mundialis/actinia:latest+mundialis/actinia:grass8.3+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+    - name: Replace run integration test command
+      run: |
+        sed -i "s+# RUN make test+RUN make integrationtest+g" docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+    - name: Integration tests of actinia-ogc-api-processes-plugin
+      id: docker_build
+      uses: docker/build-push-action@v6
+      with:
+        push: false
+        tags: actinia-ogc-api-processes-plugin-test:alpine
+        context: .
+        file: docker/actinia-ogc-api-processes-plugin-test/Dockerfile
+        no-cache: true
+        # pull: true
