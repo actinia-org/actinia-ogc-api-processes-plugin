@@ -11,54 +11,15 @@ __author__ = "Carmen Tawalika, Anika Weinmann"
 __copyright__ = "Copyright 2018-2025 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
-from flask_restful_swagger_2 import Api, Resource
+from flask_restful_swagger_2 import Api
 
-from actinia_ogc_api_processes_plugin.api.helloworld import HelloWorld
-from actinia_ogc_api_processes_plugin.api.project_helloworld import ProjectHelloWorld
-
-
-def get_endpoint_class_name(
-    endpoint_class: Resource,
-    projects_url_part: str = "projects",
-) -> str:
-    """Create the name for the given endpoint class."""
-    endpoint_class_name = endpoint_class.__name__.lower()
-    if projects_url_part != "projects":
-        name = f"{endpoint_class_name}_{projects_url_part}"
-    else:
-        name = endpoint_class_name
-    return name
-
-
-def create_project_endpoints(
-    apidoc: Api,
-    projects_url_part: str = "projects",
-) -> None:
-    """Add resources with "project" inside the endpoint url to the api.
-
-    Args:
-        apidoc (Api): Flask api
-        projects_url_part (str): The name of the projects inside the endpoint
-                                 URL; to add deprecated location endpoints set
-                                 it to "locations"
-
-    """
-    apidoc.add_resource(
-        ProjectHelloWorld,
-        f"/helloworld/{projects_url_part}/<string:project_name>",
-        endpoint=get_endpoint_class_name(ProjectHelloWorld, projects_url_part),
-    )
-
+from actinia_ogc_api_processes_plugin.api.processlist import ProcessList
 
 # endpoints loaded if run as actinia-core plugin as well as standalone app
 def create_endpoints(flask_api: Api) -> None:
     """Create plugin endpoints."""
     apidoc = flask_api
 
-    apidoc.add_resource(HelloWorld, "/helloworld")
+    # Endpoints following: https://ogcapi-workshop.ogc.org/api-deep-dive/processes/
 
-    # add deprecated location endpoints
-    create_project_endpoints(apidoc, projects_url_part="locations")
-
-    # add project endpoints
-    create_project_endpoints(apidoc, projects_url_part="projects")
+    apidoc.add_resource(ProcessList, "/processes")
