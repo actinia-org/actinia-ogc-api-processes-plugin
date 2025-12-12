@@ -23,7 +23,6 @@ from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 
 def get_modules(event) -> str:
     """Get all modules (for current user): grass- and actinia-modules."""
-
     url = f"{ACTINIA.processing_base_url}/modules"
 
     postkwargs = dict()
