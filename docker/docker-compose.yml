@@ -3,45 +3,39 @@
 # SPDX-FileCopyrightText: (c) 2018-2025 by mundialis GmbH & Co. KG
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-version: "3"
 services:
 
-  actinia:
+  actinia-ogc-api-processes:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    volumes:
-      - ..:/src/actinia-ogc-api-processes-plugin/.
+    # -- For dev-setup and/or tests mount plugin src code:
+    # volumes:
+    #  - ..:/src/actinia-ogc-api-processes-plugin/.
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - "3003:3003"
+    # -- For dev-setup/debugging uncomment following:
+    # network_mode: "host"
+    # stdin_open: true
+    # tty: true
+    # command: >
+    #  sh -c "python -m actinia_ogc_api_processes_plugin.main --workers 1 --timeout 3600 --bind 0.0.0.0:3003"
+
+
+  actinia-core:
+    image: mundialis/actinia:2.12.2
     ports:
       - "8088:8088"
     depends_on:
       - valkey
-    cap_add:
-      - SYS_PTRACE
-    networks:
-    -   actinia
 
   valkey:
-    image: valkey/valkey:8.1-alpine
-    volumes:
-      - ./valkey_data:/data
-    environment:
-      - VALKEY_PASS_FILE=/data/config/.valkey
+    image: valkey/valkey:9.0-alpine
     command: [
-      "sh", "-c",
-      '
-      docker-entrypoint.sh
-      "/data/config/valkey.conf"
-      --requirepass "$$(cat $$VALKEY_PASS_FILE)"
-      '
+      "sh",
+      "-c",
+      'docker-entrypoint.sh
+      --requirepass pass'
     ]
-    ports:
-        - "6379:6379"
-    networks:
-    -   actinia
-
-networks:
-  actinia:
-    ipam:
-      config:
-        - subnet: 172.18.0.0/16
