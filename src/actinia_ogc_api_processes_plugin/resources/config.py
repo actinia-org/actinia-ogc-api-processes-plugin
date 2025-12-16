@@ -28,8 +28,6 @@ class ACTINIA:
 
     processing_base_url = "http://localhost:3000/"
     use_actinia_modules = True
-    user = "actinia-gdi"
-    password = "actinia-gdi"
 
 
 class LOGCONFIG:
@@ -77,10 +75,6 @@ class Configfile:
                     "ACTINIA",
                     "use_actinia_modules",
                 )
-            if config.has_option("ACTINIA", "user"):
-                ACTINIA.user = config.get("ACTINIA", "user")
-            if config.has_option("ACTINIA", "password"):
-                ACTINIA.password = config.get("ACTINIA", "password")
 
         # LOGGING
         if config.has_section("LOGCONFIG"):

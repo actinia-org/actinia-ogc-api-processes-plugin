@@ -27,10 +27,13 @@ describe_processlist_get_docs = {
             "description": (
                 "This response returns the process identifiers and links to process description"
             ),
+        },
+        "401": {
+            "description": "This response returns an 'Unauthorized Access' error message",
             "schema": SimpleStatusCodeResponseModel,
         },
-        "400": {
-            "description": "This response returns an error message",
+        "500": {
+            "description": "This response returns an 'Internal Server Error' error message",
             "schema": SimpleStatusCodeResponseModel,
         },
     },
