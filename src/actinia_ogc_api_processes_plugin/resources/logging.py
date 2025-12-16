@@ -25,8 +25,8 @@ from actinia_ogc_api_processes_plugin.resources.config import LOGCONFIG
 # logging.warning("called actinia_ogc_api_processes_plugin logger after 1")
 
 log = logging.getLogger("actinia-ogc-api-processes-plugin")
-werkzeugLog = logging.getLogger("werkzeug")
-gunicornLog = logging.getLogger("gunicorn")
+werkzeug_log = logging.getLogger("werkzeug")
+gunicorn_log = logging.getLogger("gunicorn")
 
 
 def set_log_format(veto=None):
@@ -91,20 +91,20 @@ def create_logger() -> None:
 
 def create_werkzeug_logger() -> None:
     """Create werkzeug-logger, set level and define format."""
-    werkzeugLog.setLevel(getattr(logging, LOGCONFIG.level))
+    werkzeug_log.setLevel(getattr(logging, LOGCONFIG.level))
     fileformat = set_log_format("veto")
     stdoutformat = set_log_format()
-    set_log_handler(werkzeugLog, "file", fileformat)
-    set_log_handler(werkzeugLog, "stdout", stdoutformat)
+    set_log_handler(werkzeug_log, "file", fileformat)
+    set_log_handler(werkzeug_log, "stdout", stdoutformat)
 
 
 def create_gunicorn_logger() -> None:
     """Create gunicorn-logger, set level and define format."""
-    gunicornLog.setLevel(getattr(logging, LOGCONFIG.level))
+    gunicorn_log.setLevel(getattr(logging, LOGCONFIG.level))
     fileformat = set_log_format("veto")
     stdoutformat = set_log_format()
-    set_log_handler(gunicornLog, "file", fileformat)
-    set_log_handler(gunicornLog, "stdout", stdoutformat)
+    set_log_handler(gunicorn_log, "file", fileformat)
+    set_log_handler(gunicorn_log, "stdout", stdoutformat)
     # gunicorn already has a lot of children logger, e.g gunicorn.http,
     # gunicorn.access. These lines deactivate their default handlers.
     # pylint: disable=E1101

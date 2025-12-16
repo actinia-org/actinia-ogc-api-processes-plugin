@@ -20,7 +20,9 @@ DEFAULT_CONFIG_PATH = "config"
 CONFIG_FILES = [
     str(f) for f in Path(DEFAULT_CONFIG_PATH).glob("**/*.ini") if f.is_file()
 ]
-GENERATED_CONFIG = DEFAULT_CONFIG_PATH + "/actinia-ogc-api-processes-plugin.cfg"
+GENERATED_CONFIG = (
+    DEFAULT_CONFIG_PATH + "/actinia-ogc-api-processes-plugin.cfg"
+)
 
 
 class ACTINIA:

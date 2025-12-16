@@ -13,15 +13,17 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 
 
 from functools import wraps
-from flask import request, jsonify
+
+from flask import jsonify, request
 
 
 def require_basic_auth(realm: str = "Login Required"):
-    """Decorator for HTTP Basic Auth.
+    """Apply decorator for HTTP Basic Auth.
 
     Compatible with flask_restful_swagger_2
     Set @require_basic_auth() for Resource methods
     """
+
     def decorator(view_func):
         @wraps(view_func)
         def wrapped(*args, **kwargs):
@@ -30,8 +32,10 @@ def require_basic_auth(realm: str = "Login Required"):
             if not auth:
                 resp = jsonify({"message": "Authentication required"})
                 resp.status_code = 401
-                resp.headers['WWW-Authenticate'] = f'Basic realm="{realm}"'
+                resp.headers["WWW-Authenticate"] = f"Basic realm='{realm}'"
                 return resp
             return view_func(*args, **kwargs)
+
         return wrapped
+
     return decorator

@@ -1,15 +1,21 @@
-# PLR0913 too-many-arguments (of function definition)
-# PLR0917 too-many-positional-arguments (of function definition)
-# PLW0603 (checks for use of) global-statement
-# S107 hardcoded-password-default
-# S606 start-process-with-no-shell
+# ANN001 Missing type annotation for function argument
+# ANN002 Missing type annotation for `*args`
+# ANN003 Missing type annotation for `**kwargs`
+# ANN201 Missing return type annotation for public function
+# ANN202 Missing return type annotation for private function
 # FA102 future-required-type-annotation
 # PLC0415 import-outside-top-level
+# PLR0913 too-many-arguments (of function definition)
+# PLR0917 too-many-positional-arguments (of function definition)
 # PLR2004 magic-value-comparison (unnamed numerical constants ("magic") values)
+# PLR6301 Method could be a function, class method, or static method
+# PLW0603 (checks for use of) global-statement
+# RET505 [*] Unnecessary `elif`/'else' after `return` statement
+# S107 hardcoded-password-default
+# S113 Probable use of `requests` call without timeout
+# S606 start-process-with-no-shell
 
-lint.ignore = ["PLR0913", "PLR0917", "PLW0603", "S107", "S606", "FA102"]
+lint.ignore = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "FA102", "PLR0913", "PLR0917", "PLR2004", "PLR6301", "PLW0603", "RET505", "S107", "S113", "S606"]
 
 [lint.per-file-ignores]
 "tests/testsuite.py" = [ "PLC0415",]
-"tests/integrationtests/test_helloworld.py" = [ "PLR2004",]
-"tests/integrationtests/test_projecthelloworld.py" = [ "PLR2004",]

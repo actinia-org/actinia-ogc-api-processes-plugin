@@ -19,21 +19,26 @@ from actinia_ogc_api_processes_plugin.model.response_models import (
 describe_processlist_get_docs = {
     # "summary" is taken from the description of the get method
     "tags": ["processlist"],
-    "description": (
-        "Process identifiers, links to process descriptions. "
-    ),
+    "description": "Process identifiers, links to process descriptions.",
     "responses": {
         "200": {
             "description": (
-                "This response returns the process identifiers and links to process description"
+                "This response returns the process identifiers "
+                "and links to process description"
             ),
         },
         "401": {
-            "description": "This response returns an 'Unauthorized Access' error message",
+            "description": (
+                "This response returns an "
+                "'Unauthorized Access' error message"
+            ),
             "schema": SimpleStatusCodeResponseModel,
         },
         "500": {
-            "description": "This response returns an 'Internal Server Error' error message",
+            "description": (
+                "This response returns an "
+                "'Internal Server Error' error message"
+            ),
             "schema": SimpleStatusCodeResponseModel,
         },
     },

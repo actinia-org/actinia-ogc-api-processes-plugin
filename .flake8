@@ -4,3 +4,6 @@
 # E501 line too long (83 > 79 characters)
 
 exclude = .git,.pycache,build,.eggs
+
+per-file-ignores =
+    ./src/actinia_ogc_api_processes_plugin/core/processlist.py: E501

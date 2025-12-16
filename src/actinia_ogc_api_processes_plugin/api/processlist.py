@@ -14,9 +14,8 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 from flask import jsonify, make_response
 from flask_restful_swagger_2 import Resource, swagger
 
-from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
-
 from actinia_ogc_api_processes_plugin.apidocs import processlist
+from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
 from actinia_ogc_api_processes_plugin.core.processlist import get_modules
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
@@ -29,9 +28,7 @@ class ProcessList(Resource):
 
     def __init__(self) -> None:
         """ProcessList class initialisation."""
-        self.msg = (
-            "TODO"
-        )
+        self.msg = "Return process list with process identifiers"
 
     @require_basic_auth()
     @swagger.doc(processlist.describe_processlist_get_docs)
@@ -41,13 +38,25 @@ class ProcessList(Resource):
         Returns process list with process identifiers
         and link to process descriptions.
         """
-        resp, status_code_grass_modules, status_code_actinia_modules = get_modules()
-        if status_code_grass_modules == 200 and status_code_actinia_modules == 200:
+        resp, status_code_grass_modules, status_code_actinia_modules = (
+            get_modules()
+        )
+        if (
+            status_code_grass_modules == 200
+            and status_code_actinia_modules == 200
+        ):
             return make_response(resp, 200)
-        elif status_code_grass_modules == 401 or status_code_actinia_modules == 401:
+        elif (
+            status_code_grass_modules == 401
+            or status_code_actinia_modules == 401
+        ):
             log.error("ERROR: Unauthorized Access")
-            log.debug(f"grass_modules status code: {status_code_grass_modules}")
-            log.debug(f"actinia_modules status code: {status_code_actinia_modules}")
+            log.debug(
+                f"grass_modules status code: {status_code_grass_modules}",
+            )
+            log.debug(
+                f"actinia_modules status code: {status_code_actinia_modules}",
+            )
             log.debug(f"actinia response: {resp}")
             res = jsonify(
                 SimpleStatusCodeResponseModel(
@@ -58,8 +67,12 @@ class ProcessList(Resource):
             return make_response(res, 401)
         else:
             log.error("ERROR: Internal Server Error")
-            log.debug(f"grass_modules status code: {status_code_grass_modules}")
-            log.debug(f"actinia_modules status code: {status_code_actinia_modules}")
+            log.debug(
+                f"grass_modules status code: {status_code_grass_modules}",
+            )
+            log.debug(
+                f"actinia_modules status code: {status_code_actinia_modules}",
+            )
             log.debug(f"actinia response: {resp}")
             res = jsonify(
                 SimpleStatusCodeResponseModel(
