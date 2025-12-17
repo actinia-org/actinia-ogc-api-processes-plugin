@@ -9,7 +9,7 @@ Use docker-compose for installation:
 docker compose -f docker/docker-compose.yml build
 docker compose -f docker/docker-compose.yml up
 
-# -- only current plugin
+# -- only current plugin (Note: need to start actinia + valkey separately)
 docker compose -f docker/docker-compose.yml run --rm --service-ports --entrypoint sh actinia-ogc-api-processes
 # within docker
 gunicorn -b 0.0.0.0:3003 -w 8 --access-logfile=- -k gthread actinia_ogc_api_processes_plugin.main:flask_app
@@ -57,27 +57,31 @@ pip3 uninstall actinia-ogc-api-processes-plugin.wsgi -y
 rm -rf /usr/lib/python3.8/site-packages/actinia_ogc_api_processes_plugin.wsgi-*.egg
 ```
 
-### Running tests
-**TODO: Add tests + update setup here**
+## Running tests
 
-You can run the tests in the actinia test docker:
+You can run the tests with following setup:
 
 ```bash
-docker build -f docker/actinia-ogc-api-processes-plugin-test/Dockerfile -t actinia-ogc-api-processes-plugin-test .
-docker run -it actinia-ogc-api-processes-plugin-test -i
+# First: Uncomment the volume mount of the ogc-api-processes-plugin of actinia-ogc-api-processes service within docker/docker-compose.yml
+# Then start containers for testing
+docker compose -f "docker/docker-compose.yml" up -d --build
 
-cd /src/actinia-ogc-api-processes-plugin/
 
 # run all tests
-make test
+docker exec -t docker-actinia-ogc-api-processes-1 make test
 
 # run only unittests
-make unittest
+docker exec -t docker-actinia-ogc-api-processes-1 make unittest
+
 # run only integrationtests
-make integrationtest
+docker exec -t docker-actinia-ogc-api-processes-1 make integrationtest
 
 # run only tests which are marked for development with the decorator '@pytest.mark.dev'
-make devtest
+docker exec -t docker-actinia-ogc-api-processes-1 make devtest
+
+
+# Stop containers after finishing testing
+docker compose -f "docker/docker-compose.yml" down
 ```
 
 ## Hint for the development of actinia plugins

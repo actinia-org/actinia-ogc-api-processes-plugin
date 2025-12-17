@@ -13,15 +13,26 @@ __author__ = "Carmen Tawalika, Sören Gebbert"
 __copyright__ = "Copyright 2018-2025 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
+import base64
 import unittest
 
-from actinia_cloudevent_plugin.main import flask_app
+from actinia_ogc_api_processes_plugin.main import flask_app
 
 
 class TestCase(unittest.TestCase):
     """Test case class."""
 
-    URL_PREFIX = "http://localhost:5000/api/v1"
+    HEADER_AUTH = {  # noqa: RUF012
+        "Authorization": (
+            f"Basic {base64.b64encode(b'actinia-gdi:actinia-gdi').decode()}"
+        ),
+    }
+    HEADER_AUTH_WRONG = {  # noqa: RUF012
+        "Authorization": (
+            "Basic "
+            f"{base64.b64encode(b'wrong_username:wrong_password').decode()}"
+        ),
+    }
 
     def setUp(self) -> None:
         """Overwrite method setUp from unittest.TestCase class."""
