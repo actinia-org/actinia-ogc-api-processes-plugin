@@ -41,10 +41,10 @@ jobs:
     - name: List running docker
       run: docker ps
     - name: Docker logs actinia-ogc-api-processes-plugin
-      run: docker logs actinia-ogc-api-processes-plugin-1
+      run: docker logs docker-actinia-ogc-api-processes-1
     - name: Docker logs actinia-core
       run: docker logs docker-actinia-core-1
     - name: Run integration test
-      run: docker exec -t actinia-ogc-api-processes-plugin-1 make integrationtest
+      run: docker exec -t docker-actinia-ogc-api-processes-1 make integrationtest
     - name: Stop containers
       run: docker compose -f "docker/docker-compose.yml" down
