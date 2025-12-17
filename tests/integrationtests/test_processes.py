@@ -39,9 +39,7 @@ class ProcessesTest(TestCase):
         assert (
             "processes" in resp.json
         ), "There is no 'processes' inside the response"
-        assert (
-            "links" in resp.json
-        ), "There is no 'links' inside the response"
+        assert "links" in resp.json, "There is no 'links' inside the response"
         # check exemplary first processes entry
         assert (
             "id" in resp.json["processes"][0]

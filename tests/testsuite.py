@@ -22,11 +22,16 @@ from actinia_ogc_api_processes_plugin.main import flask_app
 class TestCase(unittest.TestCase):
     """Test case class."""
 
-    HEADER_AUTH = {
-        "Authorization": f"Basic {base64.b64encode(b'actinia-gdi:actinia-gdi').decode()}",
+    HEADER_AUTH = {  # noqa: RUF012
+        "Authorization": (
+            f"Basic {base64.b64encode(b'actinia-gdi:actinia-gdi').decode()}"
+        ),
     }
-    HEADER_AUTH_WRONG = {
-        "Authorization": f"Basic {base64.b64encode(b'wrong_username:wrong_password').decode()}",
+    HEADER_AUTH_WRONG = {  # noqa: RUF012
+        "Authorization": (
+            "Basic "
+            f"{base64.b64encode(b'wrong_username:wrong_password').decode()}"
+        ),
     }
 
     def setUp(self) -> None:
