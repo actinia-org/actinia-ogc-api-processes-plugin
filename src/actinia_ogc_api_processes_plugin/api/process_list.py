@@ -14,9 +14,9 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 from flask import jsonify, make_response
 from flask_restful_swagger_2 import Resource, swagger
 
-from actinia_ogc_api_processes_plugin.apidocs import processlist
+from actinia_ogc_api_processes_plugin.apidocs import process_list
 from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
-from actinia_ogc_api_processes_plugin.core.processlist import get_modules
+from actinia_ogc_api_processes_plugin.core.process_list import get_modules
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
 )
@@ -31,7 +31,7 @@ class ProcessList(Resource):
         self.msg = "Return process list with process identifiers"
 
     @require_basic_auth()
-    @swagger.doc(processlist.describe_processlist_get_docs)
+    @swagger.doc(process_list.describe_processlist_get_docs)
     def get(self):
         """ProcessList get method.
 
