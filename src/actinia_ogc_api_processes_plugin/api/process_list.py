@@ -31,7 +31,7 @@ class ProcessList(Resource):
         self.msg = "Return process list with process identifiers"
 
     @require_basic_auth()
-    @swagger.doc(process_list.describe_processlist_get_docs)
+    @swagger.doc(process_list.describe_process_list_get_docs)
     def get(self):
         """ProcessList get method.
 

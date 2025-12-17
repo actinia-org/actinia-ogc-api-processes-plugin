@@ -16,7 +16,7 @@ from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
 )
 
-describe_processlist_get_docs = {
+describe_process_list_get_docs = {
     # "summary" is taken from the description of the get method
     "tags": ["processlist"],
     "description": "Process identifiers, links to process descriptions.",
