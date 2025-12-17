@@ -28,7 +28,8 @@ def require_basic_auth(realm: str = "Login Required"):
         @wraps(view_func)
         def wrapped(*args, **kwargs):
             auth = request.authorization
-            # NOTE: check auth (correct user + password) done within actinia
+            # NOTE: auth (correct user + password) is passed as is to actinia,
+            # so actinia is responsible to verify
             if not auth:
                 resp = jsonify({"message": "Authentication required"})
                 resp.status_code = 401
