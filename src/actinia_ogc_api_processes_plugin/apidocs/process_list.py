@@ -18,7 +18,7 @@ from actinia_ogc_api_processes_plugin.model.response_models import (
 
 describe_process_list_get_docs = {
     # "summary" is taken from the description of the get method
-    "tags": ["processlist"],
+    "tags": ["process_list"],
     "description": "Process identifiers, links to process descriptions.",
     "responses": {
         "200": {
