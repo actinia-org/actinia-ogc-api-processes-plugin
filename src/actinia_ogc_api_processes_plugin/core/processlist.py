@@ -20,6 +20,8 @@ from requests.auth import HTTPBasicAuth
 
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 
+from actinia_ogc_api_processes_plugin.resources.logging import log
+
 
 def get_modules():
     """Get all modules (for current user).
@@ -104,12 +106,19 @@ def get_modules():
             resp_actinia_modules.status_code,
         )
     else:
-        resp = {
+        log.debug(
+                f"grass_modules status code: {resp_grass_modules.status_code}",
+            )
+        log.debug(
+                f"actinia_modules status code: {resp_actinia_modules.status_code}",
+            )
+        response_combined = {
             "grass_modules": resp_grass_modules.text,
             "actinia_modules": resp_actinia_modules.text,
         }
+        log.debug(f"actinia response: {response_combined}")
         return (
-            resp,
+            dict(),
             resp_grass_modules.status_code,
             resp_actinia_modules.status_code,
         )

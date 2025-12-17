@@ -38,26 +38,19 @@ class ProcessList(Resource):
         Returns process list with process identifiers
         and link to process descriptions.
         """
-        resp, status_code_grass_modules, status_code_actinia_modules = (
+        processes, status_code_grass_modules, status_code_actinia_modules = (
             get_modules()
         )
         if (
             status_code_grass_modules == 200
             and status_code_actinia_modules == 200
         ):
-            return make_response(resp, 200)
+            return make_response(processes, 200)
         elif (
             status_code_grass_modules == 401
             or status_code_actinia_modules == 401
         ):
             log.error("ERROR: Unauthorized Access")
-            log.debug(
-                f"grass_modules status code: {status_code_grass_modules}",
-            )
-            log.debug(
-                f"actinia_modules status code: {status_code_actinia_modules}",
-            )
-            log.debug(f"actinia response: {resp}")
             res = jsonify(
                 SimpleStatusCodeResponseModel(
                     status=401,
@@ -67,13 +60,6 @@ class ProcessList(Resource):
             return make_response(res, 401)
         else:
             log.error("ERROR: Internal Server Error")
-            log.debug(
-                f"grass_modules status code: {status_code_grass_modules}",
-            )
-            log.debug(
-                f"actinia_modules status code: {status_code_actinia_modules}",
-            )
-            log.debug(f"actinia response: {resp}")
             res = jsonify(
                 SimpleStatusCodeResponseModel(
                     status=500,
