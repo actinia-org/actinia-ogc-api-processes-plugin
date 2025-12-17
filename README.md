@@ -1,14 +1,35 @@
 # actinia-ogc-api-processes-plugin
 
-This is an example plugin for [actinia-core](https://github.com/mundialis/actinia_core) which adds a "Hello World" endpoint to actinia-core.
+This is a plugin for [actinia-core](https://github.com/mundialis/actinia_core) which adds OGC API Processes support and runs as standalone app.
 
-You can run actinia-ogc-api-processes-plugin as an actinia-core plugin.
-
-## Installation
+## Installation & Setup
 Use docker-compose for installation:
 ```bash
+# -- plugin with actinia (& valkey)
 docker compose -f docker/docker-compose.yml build
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up
+
+# -- only current plugin
+docker compose -f docker/docker-compose.yml run --rm --service-ports --entrypoint sh actinia-ogc-api-processes
+# within docker
+gunicorn -b 0.0.0.0:3003 -w 8 --access-logfile=- -k gthread actinia_ogc_api_processes_plugin.main:flask_app
+```
+
+### DEV setup
+```bash
+# Uncomment the volume mount of the ogc-api-processes-plugin and additional marked sections of actinia-ogc-api-processes service within docker/docker-compose.yml,
+# Note: might also need to set:
+# - within config/mount/sample.ini: processing_base_url = http://127.0.0.1:8088/api/v3
+# - within src/actinia_ogc_api_processes_plugin/main.py set port: flask_app.run(..., port=3003)
+# then:
+docker compose -f docker/docker-compose.yml down
+docker compose -f docker/docker-compose.yml up --build
+
+# In another terminal: enter container, with stopping debugger:
+docker attach $(docker ps | grep docker-actinia-ogc-api-processes | cut -d " " -f1)
+
+# In another terminal: example call of processes-endpoint:
+curl -u actinia-gdi:actinia-gdi -X GET http://localhost:3003/processes
 ```
 
 ### Installation hints
@@ -18,27 +39,6 @@ docker compose -f docker/docker-compose.yml down
 # remove all custom networks not used by a container
 docker network prune
 docker compose -f docker/docker-compose.yml up -d
-```
-
-### Requesting helloworld endpoint
-You can test the plugin and request the `/helloworld` endpoint, e.g. with:
-```bash
-curl -u actinia-gdi:actinia-gdi -X GET http://localhost:8088/api/v3/helloworld | jq
-
-curl -u actinia-gdi:actinia-gdi -H 'accept: application/json' -H 'Content-Type: application/json' -X POST http://localhost:8088/api/v3/helloworld -d '{"name": "test"}' | jq
-```
-
-## DEV setup
-For a DEV setup you can use the docker/docker-compose.yml:
-```bash
-docker compose -f docker/docker-compose.yml build
-docker compose -f docker/docker-compose.yml run --rm --service-ports --entrypoint sh actinia
-
-# install the plugin
-(cd /src/actinia-ogc-api-processes-plugin && python3 setup.py install)
-# start actinia-core with your plugin
-sh /src/start.sh
-# gunicorn -b 0.0.0.0:8088 -w 1 --access-logfile=- -k gthread actinia_core.main:flask_app
 ```
 
 ### Hints
@@ -58,6 +58,8 @@ rm -rf /usr/lib/python3.8/site-packages/actinia_ogc_api_processes_plugin.wsgi-*.
 ```
 
 ### Running tests
+**TODO: Add tests + update setup here**
+
 You can run the tests in the actinia test docker:
 
 ```bash
@@ -76,25 +78,6 @@ make integrationtest
 
 # run only tests which are marked for development with the decorator '@pytest.mark.dev'
 make devtest
-```
-
-## Starting steps for own plugin
-If you want to have your own plugin you can use this repo to create it by
-executing the `scripts/create_own_plugin.sh`.
-
-If you want the repo in git then you first have to create an empty git repository
-and then run the script. Then follow the last instructions from the script
-to upload the initial code to your git repository.
-
-```bash
-bash create_own_plugin.sh actinia-ex2-plugin git
-```
-
-If you only want your own plugin in a folder and not in git you can execute the
-script like this:
-
-```bash
-bash create_own_plugin.sh actinia-ex2-plugin
 ```
 
 ## Hint for the development of actinia plugins
