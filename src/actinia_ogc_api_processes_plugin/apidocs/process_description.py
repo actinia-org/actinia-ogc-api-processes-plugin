@@ -33,8 +33,7 @@ describe_process_description_get_docs = {
         },
         "404": {
             "description": (
-                "This response returns an "
-                "'No such process' error message"
+                "This response returns an 'No such process' error message"
             ),
             "schema": SimpleStatusCodeResponseModel,
         },
@@ -47,8 +46,7 @@ describe_process_description_get_docs = {
         },
         "503": {
             "description": (
-                "This response returns an "
-                "'Connection Error' error message"
+                "This response returns an 'Connection Error' error message"
             ),
             "schema": SimpleStatusCodeResponseModel,
         },
