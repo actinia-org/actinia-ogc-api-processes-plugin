@@ -22,7 +22,7 @@ describe_process_description_get_docs = {
     "description": "Retrieves a process description.",
     "responses": {
         "200": {
-            "description": "This response returns the process description."
+            "description": "This response returns the process description.",
         },
         "401": {
             "description": (
