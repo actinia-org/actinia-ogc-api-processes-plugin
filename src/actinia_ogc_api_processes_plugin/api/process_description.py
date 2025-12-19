@@ -66,7 +66,7 @@ class ProcessDescription(Resource):
                     "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process",
                     "title": "No Such Process",
                     "status": 404,
-                    "detail": f"Process '{processID}' not found"
+                    "detail": f"Process '{processID}' not found",
                 })
                 return make_response(res, 404)
             else:
