@@ -17,7 +17,6 @@ from flask import request
 from requests.auth import HTTPBasicAuth
 
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
-from actinia_ogc_api_processes_plugin.resources.logging import log
 
 
 def get_module_description(processID):
