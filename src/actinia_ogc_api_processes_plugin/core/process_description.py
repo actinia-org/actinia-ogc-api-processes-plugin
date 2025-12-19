@@ -13,7 +13,7 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 
 
 import requests
-from flask import jsonify, request
+from flask import request
 from requests.auth import HTTPBasicAuth
 
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
