@@ -27,7 +27,9 @@ def get_module_description(processID):
     kwargs["auth"] = HTTPBasicAuth(auth.username, auth.password)
 
     # Get module description
-    url_module_description = f"{ACTINIA.processing_base_url}/modules/{processID}"
+    url_module_description = (
+        f"{ACTINIA.processing_base_url}/modules/{processID}"
+    )
     resp_module_description = requests.get(
         url_module_description,
         **kwargs,
@@ -35,5 +37,5 @@ def get_module_description(processID):
 
     # TODO: adjust format following "OGC Process Description":
     # https://docs.ogc.org/is/18-062r2/18-062r2.html#ogc_process_description
-    
+
     return resp_module_description

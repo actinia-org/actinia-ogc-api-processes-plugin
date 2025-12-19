@@ -40,9 +40,11 @@ class ProcessList(Resource):
         and link to process descriptions.
         """
         try:
-            processes, status_code_grass_modules, status_code_actinia_modules = (
-                get_modules()
-            )
+            (
+                processes,
+                status_code_grass_modules,
+                status_code_actinia_modules,
+            ) = get_modules()
             if (
                 status_code_grass_modules == 200
                 and status_code_actinia_modules == 200

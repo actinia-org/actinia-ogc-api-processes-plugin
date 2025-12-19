@@ -61,13 +61,16 @@ class ProcessDescription(Resource):
                 # the response SHALL be HTTP status code 404.
                 # The content of that response SHALL be based upon the OpenAPI 3.0 schema exception.yaml.
                 # https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/schemas/exception.yaml
-                # The type of the exception SHALL be “http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process”.
-                res = jsonify({
-                    "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process",
-                    "title": "No Such Process",
-                    "status": 404,
-                    "detail": f"Process '{processID}' not found",
-                })
+                # The type of the exception SHALL be:
+                # “http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process”.
+                res = jsonify(
+                    {
+                        "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process",
+                        "title": "No Such Process",
+                        "status": 404,
+                        "detail": f"Process '{processID}' not found",
+                    }
+                )
                 return make_response(res, 404)
             else:
                 log.error("ERROR: Internal Server Error")

@@ -13,11 +13,10 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 
 from flask_restful_swagger_2 import Api
 
+from actinia_ogc_api_processes_plugin.api.process_list import ProcessList
 from actinia_ogc_api_processes_plugin.api.process_description import (
     ProcessDescription,
 )
-from actinia_ogc_api_processes_plugin.api.process_list import ProcessList
-from actinia_ogc_api_processes_plugin.api.process_description import ProcessDescription
 
 
 def create_endpoints(flask_api: Api) -> None:
