@@ -11,7 +11,7 @@ __author__ = "Lina Krisztian"
 __copyright__ = "Copyright 2025 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
-from flask import jsonify, make_response, request
+from flask import jsonify, make_response
 from flask_restful_swagger_2 import Resource, swagger
 from requests.exceptions import ConnectionError, Timeout
 
