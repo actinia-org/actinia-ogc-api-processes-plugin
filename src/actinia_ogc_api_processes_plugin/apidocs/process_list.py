@@ -41,5 +41,12 @@ describe_process_list_get_docs = {
             ),
             "schema": SimpleStatusCodeResponseModel,
         },
+        "503": {
+            "description": (
+                "This response returns an "
+                "'Connection Error' error message"
+            ),
+            "schema": SimpleStatusCodeResponseModel,
+        },
     },
 }

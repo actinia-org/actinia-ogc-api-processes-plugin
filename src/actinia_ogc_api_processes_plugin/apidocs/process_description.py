@@ -31,10 +31,24 @@ describe_process_description_get_docs = {
             ),
             "schema": SimpleStatusCodeResponseModel,
         },
+        "404": {
+            "description": (
+                "This response returns an "
+                "'No such process' error message"
+            ),
+            "schema": SimpleStatusCodeResponseModel,
+        },
         "500": {
             "description": (
                 "This response returns an "
                 "'Internal Server Error' error message"
+            ),
+            "schema": SimpleStatusCodeResponseModel,
+        },
+        "503": {
+            "description": (
+                "This response returns an "
+                "'Connection Error' error message"
             ),
             "schema": SimpleStatusCodeResponseModel,
         },
