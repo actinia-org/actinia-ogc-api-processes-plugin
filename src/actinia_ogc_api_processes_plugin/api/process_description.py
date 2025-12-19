@@ -66,7 +66,7 @@ class ProcessDescription(Resource):
                 # “http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process”.
                 res = jsonify(
                     {
-                        "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process",  # pylint: disable=line-too-long
+                        "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process",
                         "title": "No Such Process",
                         "status": 404,
                         "detail": f"Process '{process_id}' not found",

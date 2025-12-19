@@ -8,4 +8,4 @@ exclude = .git,.pycache,build,.eggs
 per-file-ignores =
     ./src/actinia_ogc_api_processes_plugin/core/process_list.py: E501
     ./src/actinia_ogc_api_processes_plugin/api/process_description.py: E501
-
+    ./tests/integrationtests/test_processes_description.py: E501
