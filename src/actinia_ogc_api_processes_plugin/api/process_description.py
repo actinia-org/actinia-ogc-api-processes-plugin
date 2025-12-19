@@ -89,7 +89,6 @@ class ProcessDescription(Resource):
                 ),
             )
             return make_response(res, 503)
-    
 
     def post(self, processID) -> SimpleStatusCodeResponseModel:
         """ProcessList post method: not allowed response."""
