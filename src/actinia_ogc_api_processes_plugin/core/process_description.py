@@ -12,8 +12,6 @@ __copyright__ = "Copyright 2025 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
-import json
-
 import requests
 from flask import jsonify, request
 from requests.auth import HTTPBasicAuth
