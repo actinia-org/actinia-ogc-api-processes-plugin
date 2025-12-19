@@ -13,7 +13,7 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 
 from flask import jsonify, make_response
 from flask_restful_swagger_2 import Resource, swagger
-from requests.exceptions import ConnectionError, Timeout
+from requests.exceptions import ConnectionError
 
 from actinia_ogc_api_processes_plugin.apidocs import process_description
 from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
