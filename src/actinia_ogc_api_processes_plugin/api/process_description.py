@@ -17,7 +17,9 @@ from requests.exceptions import ConnectionError
 
 from actinia_ogc_api_processes_plugin.apidocs import process_description
 from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
-from actinia_ogc_api_processes_plugin.core.process_description import get_module_description
+from actinia_ogc_api_processes_plugin.core.process_description import (
+    get_module_description,
+)
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
 )
