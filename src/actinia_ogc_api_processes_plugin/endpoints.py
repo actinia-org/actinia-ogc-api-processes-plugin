@@ -26,4 +26,4 @@ def create_endpoints(flask_api: Api) -> None:
     # Endpoints following: https://docs.ogc.org/is/18-062r2/18-062r2.html#toc0
 
     apidoc.add_resource(ProcessList, "/processes")
-    apidoc.add_resource(ProcessDescription, "/processes/<string:processID>")
+    apidoc.add_resource(ProcessDescription, "/processes/<string:process_id>")

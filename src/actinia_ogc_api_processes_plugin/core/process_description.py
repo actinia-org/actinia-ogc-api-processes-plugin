@@ -19,8 +19,8 @@ from requests.auth import HTTPBasicAuth
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 
 
-def get_module_description(processID):
-    """Get modules description for given processID."""
+def get_module_description(process_id):
+    """Get modules description for given process_id."""
     # Authentication for actinia
     auth = request.authorization
     kwargs = dict()
@@ -28,7 +28,7 @@ def get_module_description(processID):
 
     # Get module description
     url_module_description = (
-        f"{ACTINIA.processing_base_url}/modules/{processID}"
+        f"{ACTINIA.processing_base_url}/modules/{process_id}"
     )
     resp_module_description = requests.get(
         url_module_description,

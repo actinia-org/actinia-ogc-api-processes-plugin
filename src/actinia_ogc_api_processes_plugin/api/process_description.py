@@ -35,13 +35,13 @@ class ProcessDescription(Resource):
 
     @require_basic_auth()
     @swagger.doc(process_description.describe_process_description_get_docs)
-    def get(self, processID):
+    def get(self, process_id):
         """ProcessDescription get method.
 
-        Returns process description for given processID.
+        Returns process description for given process_id.
         """
         try:
-            resp = get_module_description(processID)
+            resp = get_module_description(process_id)
             if resp.status_code == 200:
                 return make_response(jsonify(resp.json()), 200)
             elif resp.status_code == 401:
@@ -68,7 +68,7 @@ class ProcessDescription(Resource):
                         "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process",
                         "title": "No Such Process",
                         "status": 404,
-                        "detail": f"Process '{processID}' not found",
+                        "detail": f"Process '{process_id}' not found",
                     }
                 )
                 return make_response(res, 404)
@@ -93,7 +93,7 @@ class ProcessDescription(Resource):
             )
             return make_response(res, 503)
 
-    def post(self, processID) -> SimpleStatusCodeResponseModel:
+    def post(self, process_id) -> SimpleStatusCodeResponseModel:
         """ProcessList post method: not allowed response."""
         res = jsonify(
             SimpleStatusCodeResponseModel(
