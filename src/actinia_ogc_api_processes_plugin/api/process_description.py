@@ -13,7 +13,7 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 
 from flask import jsonify, make_response
 from flask_restful_swagger_2 import Resource, swagger
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError  # noqa: A004
 
 from actinia_ogc_api_processes_plugin.apidocs import process_description
 from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
@@ -59,7 +59,8 @@ class ProcessDescription(Resource):
                 log.debug(f"actinia response: {resp.text}")
                 # If operation is executed using an invalid process identifier,
                 # the response SHALL be HTTP status code 404.
-                # The content of that response SHALL be based upon the OpenAPI 3.0 schema exception.yaml.
+                # The content of that response SHALL be based upon
+                # the OpenAPI 3.0 schema exception.yaml.
                 # https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/schemas/exception.yaml
                 # The type of the exception SHALL be:
                 # “http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/no-such-process”.
@@ -69,7 +70,7 @@ class ProcessDescription(Resource):
                         "title": "No Such Process",
                         "status": 404,
                         "detail": f"Process '{process_id}' not found",
-                    }
+                    },
                 )
                 return make_response(res, 404)
             else:
@@ -92,13 +93,3 @@ class ProcessDescription(Resource):
                 ),
             )
             return make_response(res, 503)
-
-    def post(self, process_id) -> SimpleStatusCodeResponseModel:
-        """ProcessList post method: not allowed response."""
-        res = jsonify(
-            SimpleStatusCodeResponseModel(
-                status=405,
-                message="Method Not Allowed",
-            ),
-        )
-        return make_response(res, 405)

@@ -30,12 +30,10 @@ def get_module_description(process_id):
     url_module_description = (
         f"{ACTINIA.processing_base_url}/modules/{process_id}"
     )
-    resp_module_description = requests.get(
-        url_module_description,
-        **kwargs,
-    )
-
     # TODO: adjust format following "OGC Process Description":
     # https://docs.ogc.org/is/18-062r2/18-062r2.html#ogc_process_description
 
-    return resp_module_description
+    return requests.get(
+        url_module_description,
+        **kwargs,
+    )
