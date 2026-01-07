@@ -12,7 +12,7 @@ docker compose -f docker/docker-compose.yml up
 # -- only current plugin (Note: need to start actinia + valkey separately)
 docker compose -f docker/docker-compose.yml run --rm --service-ports --entrypoint sh actinia-ogc-api-processes
 # within docker
-gunicorn -b 0.0.0.0:3003 -w 8 --access-logfile=- -k gthread actinia_ogc_api_processes_plugin.main:flask_app
+gunicorn -b 0.0.0.0:4044 -w 8 --access-logfile=- -k gthread actinia_ogc_api_processes_plugin.main:flask_app
 ```
 
 ### DEV setup
@@ -20,7 +20,7 @@ gunicorn -b 0.0.0.0:3003 -w 8 --access-logfile=- -k gthread actinia_ogc_api_proc
 # Uncomment the volume mount of the ogc-api-processes-plugin and additional marked sections of actinia-ogc-api-processes service within docker/docker-compose.yml,
 # Note: might also need to set:
 # - within config/mount/sample.ini: processing_base_url = http://127.0.0.1:8088/api/v3
-# - within src/actinia_ogc_api_processes_plugin/main.py set port: flask_app.run(..., port=3003)
+# - within src/actinia_ogc_api_processes_plugin/main.py set port: flask_app.run(..., port=4044)
 # then:
 docker compose -f docker/docker-compose.yml down
 docker compose -f docker/docker-compose.yml up --build
@@ -29,7 +29,7 @@ docker compose -f docker/docker-compose.yml up --build
 docker attach $(docker ps | grep docker-actinia-ogc-api-processes | cut -d " " -f1)
 
 # In another terminal: example call of processes-endpoint:
-curl -u actinia-gdi:actinia-gdi -X GET http://localhost:3003/processes
+curl -u actinia-gdi:actinia-gdi -X GET http://localhost:4044/processes
 ```
 
 ### Installation hints

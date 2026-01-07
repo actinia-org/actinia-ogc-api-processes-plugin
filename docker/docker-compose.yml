@@ -15,13 +15,13 @@ services:
     cap_add:
       - SYS_PTRACE
     ports:
-      - "3003:3003"
+      - "4044:4044"
     # -- For dev-setup/debugging uncomment following:
     # network_mode: "host"
     # stdin_open: true
     # tty: true
     # command: >
-    #  sh -c "python -m actinia_ogc_api_processes_plugin.main --workers 1 --timeout 3600 --bind 0.0.0.0:3003"
+    #  sh -c "python -m actinia_ogc_api_processes_plugin.main --workers 1 --timeout 3600 --bind 0.0.0.0:4044"
 
 
   actinia-core:
