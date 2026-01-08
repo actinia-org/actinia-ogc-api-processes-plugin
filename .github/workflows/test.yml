@@ -22,7 +22,7 @@ jobs:
       run: docker logs docker-actinia-ogc-api-processes-1
     - name: Docker logs actinia-core
       run: docker logs docker-actinia-core-1
-    - name: Run integration test
+    - name: Run unit and integration tests
       run: docker exec -t docker-actinia-ogc-api-processes-1 make test
     - name: Stop containers
       run: docker compose -f "docker/docker-compose.yml" down
