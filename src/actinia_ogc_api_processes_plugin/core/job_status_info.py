@@ -20,18 +20,18 @@ from requests.auth import HTTPBasicAuth
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 
 
-def get_job_status(job_id):
-    """Retrieve job status from actinia processing service."""
+def get_actinia_job(job_id):
+    """Retrieve job status from actinia."""
     auth = request.authorization
     kwargs = dict()
     if auth:
         kwargs["auth"] = HTTPBasicAuth(auth.username, auth.password)
 
-    url_job = (
+    url = (
         f"{ACTINIA.processing_base_url}/resources/{auth.username}/"
         f"resource_id-{job_id}"
     )
-    return requests.get(url_job, **kwargs)
+    return requests.get(url, **kwargs)
 
 
 def map_status(raw: object) -> str:
@@ -65,9 +65,12 @@ def calculate_progress(data: dict):
     Supports nested object `progress: { num_of_steps, step }`.
     Returns None on invalid input.
     """
+    status = data.get("status")
     progress = data.get("progress")
     if not isinstance(progress, dict):
         return None
+    if status == "finished":
+        return 100
 
     try:
         raw_num = progress.get("num_of_steps")
@@ -79,8 +82,8 @@ def calculate_progress(data: dict):
 
     if num <= 0:
         return None
-
-    prog = round((cur / num) * 100)
+    # calculate percentage with total steps + 1 to avoid 100% before finished
+    prog = round((cur / (num + 1)) * 100)
     return max(0, min(100, prog))
 
 
@@ -89,9 +92,10 @@ def calculate_finished(data: dict):
 
     Calculate `finished` from accept_timestamp + time_delta (seconds)
     """
-    start = data.get("accept_timestamp")
-    if start is None:
+    status = data.get("status")
+    if status != "finished":
         return None
+    start = data.get("accept_timestamp")
 
     try:
         start_dt = datetime.fromtimestamp(float(start), tz=timezone.utc)
@@ -104,17 +108,8 @@ def calculate_finished(data: dict):
     return finished_dt.replace(microsecond=0).isoformat()
 
 
-def get_job_status_info(job_id):
-    """Return a tuple (status_code, status_info_dict_or_None, response).
-
-    Maps the actinia job response into the OGC `statusInfo` structure when
-    possible. `response` is the original requests.Response for logging.
-    """
-    resp = get_job_status(job_id)
-    status = resp.status_code
-    if status != 200:
-        return status, None, resp
-
+def parse_actinia_job(job_id, resp):
+    """Parse actinia job response into status_info dict."""
     try:
         data = resp.json()
     except (ValueError, TypeError):
@@ -152,7 +147,7 @@ def get_job_status_info(job_id):
 
     # Servers SHOULD set the value of the started field when a job begins
     # execution and is consuming compute resources.
-    # status_info["started"] = # TODO do we have this information?
+    # status_info["started"] = # TODO implement in actinia-core
 
     # Servers SHOULD set the value of the finished field when the execution of
     # a job has completed and the process is no longer consuming compute
@@ -162,13 +157,29 @@ def get_job_status_info(job_id):
     if finished_val is not None:
         status_info["finished"] = finished_val
 
-    prog_val = calculate_progress(data)
-    if prog_val is not None:
-        status_info["progress"] = prog_val
+    progress_val = calculate_progress(data)
+    if progress_val is not None:
+        status_info["progress"] = progress_val
 
     links = data.get("links")
     if not links:
         links = [{"href": request.url, "rel": "self"}]
     status_info["links"] = links
 
+    return status_info
+
+
+def get_job_status_info(job_id):
+    """Return a tuple (status_code, status_info_dict_or_None, response).
+
+    Maps the actinia job response into the OGC `statusInfo` structure when
+    possible. `response` is the original requests.Response for logging.
+    """
+    resp = get_actinia_job(job_id)
+
+    status_code = resp.status_code
+    if status_code not in {200, 400}:
+        return status_code, None, resp
+
+    status_info = parse_actinia_job(job_id, resp)
     return 200, status_info, resp
