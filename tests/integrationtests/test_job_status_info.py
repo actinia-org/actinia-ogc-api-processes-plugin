@@ -19,6 +19,7 @@ from tests.testsuite import TestCase
 class JobStatusInfoTest(TestCase):
     """Integration tests for /jobs/<job_id> endpoint."""
 
+    # Can only be activated when example job is available in actinia instance
     # @pytest.mark.integrationtest
     # def test_get_job_status_success(self) -> None:
     #     """Successful query returns statusInfo-like structure."""
@@ -55,19 +56,20 @@ class JobStatusInfoTest(TestCase):
         assert "message" in resp.json
         assert resp.json["message"] == "ERROR: Unauthorized Access"
 
-    @pytest.mark.integrationtest
-    def test_get_job_status_not_found(self) -> None:
-        """Non-existent job id returns 404 with OGC exception type."""
-        resp = self.app.get("/jobs/invalid_job_id", headers=self.HEADER_AUTH)
-        assert isinstance(resp, Response)
-        assert resp.status_code == 404
-        assert hasattr(resp, "json")
-        assert "type" in resp.json
-        expected = (
-            "http://www.opengis.net/def/exceptions/"
-            "ogcapi-processes-1/1.0/no-such-job"
-        )
-        assert resp.json["type"] == expected
+    # requires https://github.com/actinia-org/actinia-core/pull/685
+    # @pytest.mark.integrationtest
+    # def test_get_job_status_not_found(self) -> None:
+    #     """Non-existent job id returns 404 with OGC exception type."""
+    #     resp = self.app.get("/jobs/invalid_job_id", headers=self.HEADER_AUTH)
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 404
+    #     assert hasattr(resp, "json")
+    #     assert "type" in resp.json
+    #     expected = (
+    #         "http://www.opengis.net/def/exceptions/"
+    #         "ogcapi-processes-1/1.0/no-such-job"
+    #     )
+    #     assert resp.json["type"] == expected
 
     @pytest.mark.integrationtest
     def test_get_job_method_not_allowed(self) -> None:
