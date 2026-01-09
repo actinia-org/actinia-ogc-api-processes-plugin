@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""SPDX-FileCopyrightText: (c) 2018-2025 by mundialis GmbH & Co. KG.
+"""SPDX-FileCopyrightText: (c) 2018-2026 by mundialis GmbH & Co. KG.
 
 SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -13,6 +13,7 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 
 from flask_restful_swagger_2 import Api
 
+from actinia_ogc_api_processes_plugin.api.job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.api.process_description import (
     ProcessDescription,
 )
@@ -25,5 +26,6 @@ def create_endpoints(flask_api: Api) -> None:
 
     # Endpoints following: https://docs.ogc.org/is/18-062r2/18-062r2.html#toc0
 
+    apidoc.add_resource(JobStatusInfo, "/jobs/<string:job_id>")
     apidoc.add_resource(ProcessList, "/processes")
     apidoc.add_resource(ProcessDescription, "/processes/<string:process_id>")

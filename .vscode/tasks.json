@@ -1,0 +1,61 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "docker-build",
+			"label": "docker-build",
+			"platform": "python",
+			"dockerBuild": {
+				"tag": "actinia-ogc-api-processes-plugin:latest",
+				"dockerfile": "${workspaceFolder}/docker/Dockerfile",
+				"context": "${workspaceFolder}"
+			}
+		},
+		{
+			"type": "docker-run",
+			"label": "docker-run: debug",
+			"dependsOn": [
+				"docker-build"
+			],
+			"python": {
+				"module": "flask",
+				"args": [
+					"-e",
+					"/src/.env",
+					"run",
+					"--no-debugger",
+					"--host",
+					"0.0.0.0",
+					"--port",
+					"4044"
+				]
+			},
+			"dockerRun": {
+				"containerName": "actinia-ogc-api-processes",
+				"remove": true,
+				"network": "actinia-docker_actinia-dev",
+				"ports": [
+					{
+						"containerPort": 4044,
+						"hostPort": 4044
+					}
+				],
+				"env": {
+					"PYTHONUNBUFFERED": "1",
+					"PYTHONDONWRITEBYTECODE": "1",
+					"FLASK_APP": "actinia_ogc_api_processes_plugin.main",
+					"FLASK_DEBUG": "1",
+					"FLASK_ENV": "development"
+				},
+				"customOptions": "--ip 172.18.0.12",
+				"volumes": [
+					{
+						"localPath": "${workspaceFolder}",
+						"containerPath": "/src/actinia-ogc-api-processes-plugin",
+						"permissions": "rw"
+					}
+				]
+			}
+		}
+	]
+}
