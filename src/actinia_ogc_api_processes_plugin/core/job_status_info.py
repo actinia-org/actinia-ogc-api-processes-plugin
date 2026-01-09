@@ -178,8 +178,35 @@ def get_job_status_info(job_id):
     resp = get_actinia_job(job_id)
 
     status_code = resp.status_code
-    if status_code != 200:
-        return status_code, None, resp
 
-    status_info = parse_actinia_job(job_id, resp)
-    return 200, status_info, resp
+    if status_code == 200:
+        status_info = parse_actinia_job(job_id, resp)
+        return 200, status_info, resp
+
+    # Actinia returns HTTP 400 both for 'no such job' and for
+    # resources that include an error state. Distinguish by inspecting the
+    # JSON payload: if it looks like a job/resource object (contains
+    # identifiers or job fields) treat it as a valid resource and map it to
+    # a 200 + statusInfo. Otherwise return 404.
+    if status_code == 400:
+        try:
+            data = resp.json()
+        except (ValueError, TypeError):
+            return 404, None, resp
+
+        indicative_keys = {
+            "accept_timestamp",
+            "message",
+            "status",
+            "resource_id",
+            "timestamp",
+        }
+
+        if isinstance(data, dict) and indicative_keys.issubset(data.keys()):
+            status_info = parse_actinia_job(job_id, resp)
+            return 200, status_info, resp
+
+        return 404, None, resp
+
+    # Any other status codes return as-is
+    return status_code, None, resp
