@@ -178,7 +178,7 @@ def get_job_status_info(job_id):
     resp = get_actinia_job(job_id)
 
     status_code = resp.status_code
-    if status_code not in {200, 400}:
+    if status_code != 200:
         return status_code, None, resp
 
     status_info = parse_actinia_job(job_id, resp)

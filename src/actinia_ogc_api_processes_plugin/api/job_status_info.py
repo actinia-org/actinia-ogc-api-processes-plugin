@@ -71,7 +71,7 @@ class JobStatusInfo(Resource):
                     ),
                 )
                 return make_response(res, 401)
-            elif status == 404:
+            elif status in {400, 404}:
                 log.error("ERROR: No such job")
                 log.debug(f"actinia response: {resp.text}")
                 res = jsonify(
