@@ -19,11 +19,8 @@ RUN pip3 install --no-cache-dir gunicorn && \
 
 COPY . /src/actinia-ogc-api-processes-plugin/
 RUN pip3 install --no-cache-dir -e /src/actinia-ogc-api-processes-plugin/
-# TODO
-# For tests, when created:
-# RUN chmod a+x /src/actinia-ogc-api-processes-plugin/tests.sh
 
 WORKDIR /src/actinia-ogc-api-processes-plugin
 # RUN make test
 
-CMD ["gunicorn", "-b", "0.0.0.0:3003", "-w", "8", "--access-logfile=-", "-k", "gthread", "actinia_ogc_api_processes_plugin.main:flask_app"]
+CMD ["gunicorn", "-b", "0.0.0.0:4044", "-w", "8", "--access-logfile=-", "-k", "gthread", "actinia_ogc_api_processes_plugin.main:flask_app"]
