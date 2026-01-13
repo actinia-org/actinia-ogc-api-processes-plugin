@@ -10,29 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-
-  # unittests:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
-  #   - name: Set up Docker Buildx
-  #     uses: docker/setup-buildx-action@v3
-  #   - name: Replace run only unittest command
-  #     run: |
-  #       sed -i "s+# RUN make test+RUN make unittest+g" docker/Dockerfile
-  #   - name: Unittests of actinia-ogc-api-processes-plugin
-  #     id: docker_build
-  #     uses: docker/build-push-action@v6
-  #     with:
-  #       push: false
-  #       tags: actinia-ogc-api-processes-plugin-tests:alpine
-  #       context: .
-  #       file: docker/Dockerfile
-  #       no-cache: true
-  #       # pull: true
-
-  integration-tests:
+  tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
@@ -44,7 +22,7 @@ jobs:
       run: docker logs docker-actinia-ogc-api-processes-1
     - name: Docker logs actinia-core
       run: docker logs docker-actinia-core-1
-    - name: Run integration test
-      run: docker exec -t docker-actinia-ogc-api-processes-1 make integrationtest
+    - name: Run unit and integration tests
+      run: docker exec -t docker-actinia-ogc-api-processes-1 make test
     - name: Stop containers
       run: docker compose -f "docker/docker-compose.yml" down
