@@ -19,7 +19,7 @@ from tests.testsuite import TestCase
 class JobStatusInfoTest(TestCase):
     """Integration tests for /jobs/<job_id> endpoint."""
 
-    # Can only be activated when example job is available in actinia instance
+    # # Can only be activated when example job is available in actinia instance
     # @pytest.mark.integrationtest
     # def test_get_job_status_success(self) -> None:
     #     """Successful query returns statusInfo-like structure."""
@@ -29,10 +29,24 @@ class JobStatusInfoTest(TestCase):
     #     assert isinstance(resp, Response)
     #     assert resp.status_code == 200
     #     assert hasattr(resp, "json")
-
     #     assert "jobID" in resp.json, "There is no 'jobID' in response"
     #     assert "status" in resp.json, "There is no 'status' in response"
     #     assert "links" in resp.json, "There is no 'links' in response"
+
+    # # Can only be activated when example job is available in actinia instance
+    # @pytest.mark.integrationtest
+    # def test_get_job_status_failed(self) -> None:
+    #     """Successful query returns statusInfo-like structure."""
+    #     # example job id used in response model examples
+    #     job_id = "565f6bc9-7535-44c6-9826-864fbb2421f3"
+    #     resp = self.app.get(f"/jobs/{job_id}", headers=self.HEADER_AUTH)
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert hasattr(resp, "json")
+    #     assert "jobID" in resp.json, "There is no 'jobID' in response"
+    #     assert "status" in resp.json, "There is no 'status' in response"
+    #     assert "links" in resp.json, "There is no 'links' in response"
+    #     assert resp.json["status"] == "failed"
 
     @pytest.mark.integrationtest
     def test_get_job_status_missing_auth(self) -> None:

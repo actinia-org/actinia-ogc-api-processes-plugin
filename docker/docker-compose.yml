@@ -25,7 +25,7 @@ services:
 
 
   actinia-core:
-    image: mundialis/actinia:2.12.2
+    image: mundialis/actinia:2.13.1
     # ports:
     #  - "8088:8088"
     depends_on:
