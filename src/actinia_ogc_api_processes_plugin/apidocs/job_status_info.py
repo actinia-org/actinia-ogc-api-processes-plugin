@@ -42,3 +42,31 @@ describe_job_status_info_get_docs = {
         },
     },
 }
+
+
+describe_job_status_info_delete_docs = {
+    "tags": ["job_status_info"],
+    "description": "Cancel a running or queued job.",
+    "responses": {
+        "200": {
+            "description": "Job cancelled successfully (JSON body)",
+            "schema": SimpleStatusCodeResponseModel,
+        },
+        "401": {
+            "description": "Unauthorized Access",
+            "schema": SimpleStatusCodeResponseModel,
+        },
+        "404": {
+            "description": "Job not found",
+            "schema": SimpleStatusCodeResponseModel,
+        },
+        "500": {
+            "description": "Internal Server Error",
+            "schema": SimpleStatusCodeResponseModel,
+        },
+        "503": {
+            "description": "Connection Error",
+            "schema": SimpleStatusCodeResponseModel,
+        },
+    },
+}

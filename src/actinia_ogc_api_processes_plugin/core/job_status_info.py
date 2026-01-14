@@ -34,6 +34,23 @@ def get_actinia_job(job_id):
     return requests.get(url, **kwargs)
 
 
+def cancel_actinia_job(job_id):
+    """Send a DELETE request to actinia to cancel the given job.
+
+    Returns the raw `requests.Response` object.
+    """
+    auth = request.authorization
+    kwargs = dict()
+    if auth:
+        kwargs["auth"] = HTTPBasicAuth(auth.username, auth.password)
+
+    url = (
+        f"{ACTINIA.processing_base_url}/resources/{auth.username}/"
+        f"resource_id-{job_id}"
+    )
+    return requests.delete(url, **kwargs)
+
+
 def map_status(raw: object) -> str:
     """Map actinia status values to OGC statusInfo values.
 
