@@ -55,7 +55,7 @@ class ApiJobStatusInfoDeleteUnitTest(TestCase):
         Patches `cancel_actinia_job` to return 401 and checks the response
         contains a status code attribute.
         """
-        job_id = "unit-3"
+        job_id = "unit-2"
 
         class Resp:
             status_code = 401
@@ -76,7 +76,7 @@ class ApiJobStatusInfoDeleteUnitTest(TestCase):
         Patches `cancel_actinia_job` to return 404 and checks the response
         contains a status code attribute.
         """
-        job_id = "unit-4"
+        job_id = "unit-3"
 
         class Resp:
             status_code = 404
@@ -97,7 +97,7 @@ class ApiJobStatusInfoDeleteUnitTest(TestCase):
         The patched `cancel_actinia_job` raises an exception; the test verifies
         the resulting response exposes `status_code`.
         """
-        job_id = "unit-5"
+        job_id = "unit-4"
 
         class OwnExceptionError(Exception):
             pass
