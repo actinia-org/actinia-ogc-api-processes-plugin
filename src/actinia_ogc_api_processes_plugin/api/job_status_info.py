@@ -148,7 +148,7 @@ class JobStatusInfo(Resource):
                 s, status_info, _get_resp = get_job_status_info(job_id)
 
                 if s == 200 and status_info:
-                    model_kwargs = self._build_status_info_model_kwargs(
+                    model_kwargs = self._build_status_info_kwargs(
                         status_info,
                     )
 
