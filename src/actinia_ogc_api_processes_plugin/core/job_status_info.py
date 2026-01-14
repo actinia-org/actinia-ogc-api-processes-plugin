@@ -110,7 +110,6 @@ def calculate_finished(data: dict):
 
 def parse_actinia_job(job_id, data):
     """Parse actinia job response json into status_info dict."""
-
     status_info = {}
     status_info["jobID"] = job_id
     status_info["status"] = map_status(data.get("status"))
@@ -174,9 +173,9 @@ def get_job_status_info(job_id):
     resp = get_actinia_job(job_id)
 
     status_code = resp.status_code
-    data = resp.json()
 
     if status_code == 200:
+        data = resp.json()
         status_info = parse_actinia_job(job_id, data)
         return 200, status_info, resp
 

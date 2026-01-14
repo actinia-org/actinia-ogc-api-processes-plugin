@@ -15,7 +15,6 @@ from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
 )
 
-
 describe_job_list_get_docs = {
     "tags": ["job_list"],
     "description": "List jobs for the requesting user.",

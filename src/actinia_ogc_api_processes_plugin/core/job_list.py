@@ -11,15 +11,15 @@ __author__ = "Carmen Tawalika"
 __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
-from flask import request
 import requests
+from flask import request
 from requests.auth import HTTPBasicAuth
 
-from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
-from actinia_ogc_api_processes_plugin.resources.logging import log
 from actinia_ogc_api_processes_plugin.core.job_status_info import (
     parse_actinia_job,
 )
+from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
+from actinia_ogc_api_processes_plugin.resources.logging import log
 
 
 def get_actinia_jobs():
@@ -61,13 +61,13 @@ def parse_actinia_jobs(resp):
     for item in items:
         if not isinstance(item, dict):
             continue
-        job_id = item.get("resource_id").strip("resource_id-")
+        job_id = item.get("resource_id").removeprefix("resource_id-")
         if not job_id:
             continue
 
         try:
             status_info = parse_actinia_job(job_id, item)
-        except Exception:
+        except (TypeError, ValueError):
             status_info = {
                 "jobID": job_id,
                 "type": "process",
@@ -84,14 +84,13 @@ def parse_actinia_jobs(resp):
 
         jobs.append(status_info)
 
-    resp_format = {
+    return {
         "jobs": jobs,
         "links": [
             {
                 "href": f"{request.url}?f=json",
                 "rel": "self",
                 "type": "application/json",
-            }
+            },
         ],
     }
-    return resp_format
