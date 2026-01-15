@@ -99,3 +99,60 @@ def test_parse_actinia_jobs_filter_by_status():
     # filter by multiple statuses
     out_both = core.parse_actinia_jobs(resp, status=["running", "successful"])
     assert len(out_both["jobs"]) == 2
+
+
+@pytest.mark.unittest
+def test_parse_actinia_jobs_filter_by_datetime():
+    """parse_actinia_jobs should filter jobs by created datetime."""
+    # two sample resources with accept_timestamp -> created
+    # 2021-01-01T00:00:00Z and 2021-01-02T00:00:00Z
+    items = [
+        {
+            "resource_id": "resource_id-aaa",
+            "status": "running",
+            "accept_timestamp": "1609459200",
+            "links": [{"href": "http://example.com/x", "rel": "self"}],
+        },
+        {
+            "resource_id": "resource_id-bbb",
+            "status": "finished",
+            "accept_timestamp": "1609545600",
+            "links": [{"href": "http://example.com/y", "rel": "self"}],
+        },
+    ]
+
+    resp = MockResp({"resource_list": items})
+
+    # no filter -> both jobs returned
+    out = core.parse_actinia_jobs(resp)
+    assert len(out["jobs"]) == 2
+
+    # single exact datetime -> only first job
+    out_single = core.parse_actinia_jobs(
+        resp,
+        datetime_param="2021-01-01T00:00:00+00:00",
+    )
+    assert len(out_single["jobs"]) == 1
+    assert out_single["jobs"][0]["processID"] == "resource_id-aaa"
+
+    # closed interval covering both -> both jobs
+    out_closed = core.parse_actinia_jobs(
+        resp,
+        datetime_param="2021-01-01T00:00:00+00:00/2021-01-02T00:00:00+00:00",
+    )
+    assert len(out_closed["jobs"]) == 2
+
+    # open start: '/../2021-01-01T12:00:00+00:00'
+    # -> only first (00:00) <= 12:00
+    out_open_start = core.parse_actinia_jobs(
+        resp,
+        datetime_param="/2021-01-01T12:00:00+00:00",
+    )
+    assert len(out_open_start["jobs"]) == 1
+
+    # open end: '2021-01-02T00:00:00+00:00/..' -> only second (>=)
+    out_open_end = core.parse_actinia_jobs(
+        resp,
+        datetime_param="2021-01-02T00:00:00+00:00/..",
+    )
+    assert len(out_open_end["jobs"]) == 1

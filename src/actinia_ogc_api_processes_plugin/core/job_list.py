@@ -11,6 +11,8 @@ __author__ = "Carmen Tawalika"
 __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
+from datetime import datetime, timezone
+
 import requests
 from flask import has_request_context, request
 from requests.auth import HTTPBasicAuth
@@ -46,7 +48,7 @@ def get_actinia_jobs(actinia_type: str | None = None):
         raise
 
 
-def generate_new_joblinks(job_id: str) -> list[dict]:
+def _generate_new_joblinks(job_id: str) -> list[dict]:
     """Make sure job_id is in the link."""
     base = request.url.rstrip("/") if has_request_context() else "/jobs"
     job_href = f"{base}/{job_id}"
@@ -73,6 +75,49 @@ def _safe_parse_item(item):
     return job_id, status_info
 
 
+def _get_datetime_interval(datetime_param):
+    """Parse datetime query parameter into (start, end) datetime tuple.
+
+    value can be either a single date-time or an interval 'start/end'.
+    """
+    if not datetime_param:
+        return None
+
+    try:
+        if "/" in datetime_param:
+            left, right = datetime_param.split("/", 1)
+            # interpret empty string or '..' as open bound
+            if left in {"", ".."}:
+                start = None
+            else:
+                s = left.replace("Z", "+00:00") if left.endswith("Z") else left
+                start = datetime.fromisoformat(s)
+            if right in {"", ".."}:
+                end = None
+            else:
+                r = (
+                    right.replace("Z", "+00:00")
+                    if right.endswith("Z")
+                    else right
+                )
+                end = datetime.fromisoformat(r)
+        else:
+            # single datetime -> treat as instant interval
+            v = (
+                datetime_param.replace("Z", "+00:00")
+                if datetime_param.endswith("Z")
+                else datetime_param
+            )
+            instant = datetime.fromisoformat(v)
+            start = instant
+            end = instant
+        datetime_interval = (start, end)
+    except (TypeError, ValueError):
+        # invalid datetime format -> no matches
+        datetime_interval = (None, None)
+    return datetime_interval
+
+
 def _matches_filters(
     status_info,
     process_ids: list | None,
@@ -96,10 +141,51 @@ def _matches_filters(
     return True
 
 
+def _matches_datetime_filters(
+    status_info,
+    datetime_interval: tuple | None = None,
+) -> bool:
+    """Return True when `status_info` passes provided filters."""
+    # apply optional filtering by datetime (query parameter)
+    if datetime_interval:
+        # datetime_interval is (start, end) with start/end are datetime or None
+        created_val = status_info.get("created")
+        if not created_val:
+            return False
+        try:
+            # support 'Z' suffix
+            if created_val.endswith("Z"):
+                created_dt = datetime.fromisoformat(
+                    created_val.replace("Z", "+00:00"),
+                )
+            else:
+                created_dt = datetime.fromisoformat(created_val)
+        except (TypeError, ValueError):
+            return False
+
+        start, end = datetime_interval
+        # convert naive datetimes to timezone-aware UTC if needed
+        if start is not None and start.tzinfo is None:
+            start = start.replace(tzinfo=timezone.utc)
+        if end is not None and end.tzinfo is None:
+            end = end.replace(tzinfo=timezone.utc)
+
+        if start and end:
+            if not (start <= created_dt <= end):
+                return False
+        elif start and not end:
+            if not (created_dt >= start):
+                return False
+        elif end and not start and not (created_dt <= end):
+            return False
+    return True
+
+
 def parse_actinia_jobs(
     resp,
     process_ids: list | None = None,
     status: list | None = None,
+    datetime_param: str | None = None,
 ):
     """Map actinia response into a `jobs` list structure.
 
@@ -122,10 +208,23 @@ def parse_actinia_jobs(
 
         # Ensure links point to the single job resource (/jobs/{job_id})
         if job_id not in status_info.get("links"):
-            status_info["links"] = generate_new_joblinks(job_id)
+            status_info["links"] = _generate_new_joblinks(job_id)
 
-        # apply optional filtering by processIDs and status (query parameters)
-        if not _matches_filters(status_info, process_ids, status):
+        # parse optional datetime parameter into (start,end) datetimes
+        datetime_interval = _get_datetime_interval(datetime_param)
+
+        # apply optional filtering (query parameters)
+        if not _matches_filters(
+            status_info,
+            process_ids,
+            status,
+        ):
+            continue
+
+        if not _matches_datetime_filters(
+            status_info,
+            datetime_interval,
+        ):
             continue
 
         jobs.append(status_info)

@@ -48,6 +48,9 @@ class JobList(Resource):
             if process_ids and len(process_ids) == 1 and "," in process_ids[0]:
                 process_ids = [p for p in process_ids[0].split(",") if p]
 
+            # read optional datetime query parameter (single value)
+            datetime = request.args.get("datetime") or None
+
             # read optional status query parameter (array)
             job_status = request.args.getlist("status") or None
             if job_status and len(job_status) == 1 and "," in job_status[0]:
@@ -63,7 +66,12 @@ class JobList(Resource):
 
             resp = get_actinia_jobs(actinia_type=actinia_type)
             if resp.status_code == 200:
-                jobs = parse_actinia_jobs(resp, process_ids, job_status)
+                jobs = parse_actinia_jobs(
+                    resp,
+                    process_ids,
+                    job_status,
+                    datetime,
+                )
                 return make_response(jsonify(jobs), 200)
             elif resp.status_code == 401:
                 log.error("ERROR: Unauthorized Access")
