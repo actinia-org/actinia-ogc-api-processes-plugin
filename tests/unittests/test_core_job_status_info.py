@@ -152,8 +152,8 @@ def test_parse_actinia_job_with_valid_data():
         "links": [{"href": "http://example.com/out", "rel": "alternate"}],
     }
 
-    resp = MockResp(200, json_data=sample, text="ok")
-    info = core.parse_actinia_job("96ed4cb9-1290-4409-b034-c162759c10a1", resp)
+    data = MockResp(200, json_data=sample, text="ok").json()
+    info = core.parse_actinia_job("96ed4cb9-1290-4409-b034-c162759c10a1", data)
     assert info["jobID"] == "96ed4cb9-1290-4409-b034-c162759c10a1"
     assert info["status"] == "running"
     expected_proc = "resource_id-96ed4cb9-1290-4409-b034-c162759c10a1"
@@ -180,8 +180,8 @@ def test_parse_actinia_job_finished_status():
         "links": [{"href": "http://example.com/out", "rel": "alternate"}],
     }
 
-    resp = MockResp(200, json_data=sample, text="ok")
-    info = core.parse_actinia_job("96ed4cb9-1290-4409-b034-c162759c10a1", resp)
+    data = MockResp(200, json_data=sample, text="ok").json()
+    info = core.parse_actinia_job("96ed4cb9-1290-4409-b034-c162759c10a1", data)
     # finished maps to 'successful'
     assert info["status"] == "successful"
     assert info["finished"] == "2026-01-06T11:02:49+00:00"

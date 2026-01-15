@@ -125,13 +125,8 @@ def calculate_finished(data: dict):
     return finished_dt.replace(microsecond=0).isoformat()
 
 
-def parse_actinia_job(job_id, resp):
-    """Parse actinia job response into status_info dict."""
-    try:
-        data = resp.json()
-    except (ValueError, TypeError):
-        data = {}
-
+def parse_actinia_job(job_id, data):
+    """Parse actinia job response json into status_info dict."""
     status_info = {}
     status_info["jobID"] = job_id
     status_info["status"] = map_status(data.get("status"))
@@ -197,7 +192,8 @@ def get_job_status_info(job_id):
     status_code = resp.status_code
 
     if status_code == 200:
-        status_info = parse_actinia_job(job_id, resp)
+        data = resp.json()
+        status_info = parse_actinia_job(job_id, data)
         return 200, status_info, resp
 
     # Actinia returns HTTP 400 both for 'no such job' and for
@@ -220,7 +216,7 @@ def get_job_status_info(job_id):
         }
 
         if isinstance(data, dict) and indicative_keys.issubset(data.keys()):
-            status_info = parse_actinia_job(job_id, resp)
+            status_info = parse_actinia_job(job_id, data)
             return 200, status_info, resp
 
         return 404, None, resp
