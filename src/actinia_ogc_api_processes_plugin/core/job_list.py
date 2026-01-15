@@ -80,7 +80,7 @@ def parse_actinia_jobs(resp):
         if job_id not in status_info.get("links"):
             job_href = f"{request.url.rstrip('/')}/{job_id}"
             new_links = [{"href": job_href, "rel": "status"}]
-        status_info["links"] = new_links
+            status_info["links"] = new_links
 
         jobs.append(status_info)
 
