@@ -18,6 +18,16 @@ from actinia_ogc_api_processes_plugin.model.response_models import (
 describe_job_list_get_docs = {
     "tags": ["job_list"],
     "description": "List jobs for the requesting user.",
+    "parameters": [
+        {
+            "name": "processID",
+            "in": "query",
+            "required": False,
+            "description": "Filter jobs by process identifier(s).",
+            "type": "array",
+            "items": {"type": "string"},
+        },
+    ],
     "responses": {
         "200": {
             "description": "This response returns the jobs list.",

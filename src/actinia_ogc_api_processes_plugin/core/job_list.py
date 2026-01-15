@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 import requests
-from flask import request
+from flask import request, has_request_context
 from requests.auth import HTTPBasicAuth
 
 from actinia_ogc_api_processes_plugin.core.job_status_info import (
@@ -41,10 +41,13 @@ def get_actinia_jobs():
         raise
 
 
-def parse_actinia_jobs(resp):
+def parse_actinia_jobs(resp, process_ids: list | None = None):
     """Map actinia response into a `jobs` list structure.
 
     Reuses `parse_actinia_job`.
+
+    If `process_ids` is provided, only include jobs matching any of the
+    provided process identifiers (match against `processID` or `jobID`).
     """
     try:
         data = resp.json()
@@ -64,10 +67,9 @@ def parse_actinia_jobs(resp):
         job_id = item.get("resource_id").removeprefix("resource_id-")
         if not job_id:
             continue
-
         try:
             status_info = parse_actinia_job(job_id, item)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, Exception):
             status_info = {
                 "jobID": job_id,
                 "type": "process",
@@ -78,17 +80,38 @@ def parse_actinia_jobs(resp):
 
         # Ensure links point to the single job resource (/jobs/{job_id})
         if job_id not in status_info.get("links"):
-            job_href = f"{request.url.rstrip('/')}/{job_id}"
+            if has_request_context():
+                base = request.url.rstrip("/")
+            else:
+                base = "/jobs"
+            job_href = f"{base}/{job_id}"
             new_links = [{"href": job_href, "rel": "status"}]
             status_info["links"] = new_links
 
+        # apply optional filtering by processIDs (query parameter)
+        if process_ids:
+            pid_val = status_info.get("processID")
+            jid_val = status_info.get("jobID")
+            matched = False
+            for pid in process_ids:
+                if pid == pid_val or pid == jid_val:
+                    matched = True
+                    break
+            if not matched:
+                continue
+
         jobs.append(status_info)
+
+    if has_request_context():
+        self_href = f"{request.url}?f=json"
+    else:
+        self_href = "/jobs?f=json"
 
     return {
         "jobs": jobs,
         "links": [
             {
-                "href": f"{request.url}?f=json",
+                "href": self_href,
                 "rel": "self",
                 "type": "application/json",
             },

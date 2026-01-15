@@ -11,7 +11,7 @@ __author__ = "Carmen Tawalika"
 __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
-from flask import jsonify, make_response
+from flask import jsonify, make_response, request
 from flask_restful_swagger_2 import Resource, swagger
 from requests.exceptions import ConnectionError as req_ConnectionError
 
@@ -41,7 +41,13 @@ class JobList(Resource):
         try:
             resp = get_actinia_jobs()
             if resp.status_code == 200:
-                jobs = parse_actinia_jobs(resp)
+                # read optional processID query parameter (array)
+                process_ids = request.args.getlist("processID") or None
+                # support comma-separated single value
+                if process_ids and len(process_ids) == 1 and "," in process_ids[0]:
+                    process_ids = [p for p in process_ids[0].split(",") if p]
+
+                jobs = parse_actinia_jobs(resp, process_ids)
                 return make_response(jsonify(jobs), 200)
             elif resp.status_code == 401:
                 log.error("ERROR: Unauthorized Access")
