@@ -18,15 +18,19 @@ from actinia_ogc_api_processes_plugin.core import job_list as core
 
 
 class MockResp:
-    def __init__(self, json_data):
+    """Mock requests.Response with json() method."""
+
+    def __init__(self, json_data) -> None:
+        """Initialise with json_data."""
         self._json = json_data
 
     def json(self):
+        """Return the json data."""
         return self._json
 
 
 @pytest.mark.unittest
-def test_parse_actinia_jobs_filter_by_processID():
+def test_parse_actinia_jobs_filter_by_processid():
     """parse_actinia_jobs should filter jobs by processID or jobID."""
     # two sample resources: one with resource_id prefix, one with direct id
     items = [
@@ -58,3 +62,40 @@ def test_parse_actinia_jobs_filter_by_processID():
     out3 = core.parse_actinia_jobs(resp, process_ids=["bbb"])
     assert len(out3["jobs"]) == 1
     assert out3["jobs"][0]["jobID"] == "bbb"
+
+
+@pytest.mark.unittest
+def test_parse_actinia_jobs_filter_by_status():
+    """parse_actinia_jobs should filter jobs by status values."""
+    items = [
+        {
+            "resource_id": "resource_id-aaa",
+            "status": "running",
+            "links": [{"href": "http://example.com/x", "rel": "self"}],
+        },
+        {
+            "resource_id": "resource_id-bbb",
+            "status": "finished",
+            "links": [{"href": "http://example.com/y", "rel": "self"}],
+        },
+    ]
+
+    resp = MockResp({"resource_list": items})
+
+    # no filter -> both jobs returned
+    out = core.parse_actinia_jobs(resp)
+    assert len(out["jobs"]) == 2
+
+    # filter by OGC status 'running'
+    out_run = core.parse_actinia_jobs(resp, status=["running"])
+    assert len(out_run["jobs"]) == 1
+    assert out_run["jobs"][0]["status"] == "running"
+
+    # filter by OGC status 'successful' (maps from actinia 'finished')
+    out_succ = core.parse_actinia_jobs(resp, status=["successful"])
+    assert len(out_succ["jobs"]) == 1
+    assert out_succ["jobs"][0]["status"] == "successful"
+
+    # filter by multiple statuses
+    out_both = core.parse_actinia_jobs(resp, status=["running", "successful"])
+    assert len(out_both["jobs"]) == 2
