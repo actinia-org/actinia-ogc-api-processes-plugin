@@ -127,10 +127,22 @@ def _get_datetime_interval(datetime_param):
 
 def _matches_filters(
     status_info,
+    job_type: list | None,
     process_ids: list | None,
     status: list | None,
 ) -> bool:
     """Return True when `status_info` passes provided filters."""
+    # apply optional filtering by type (query parameter)
+    # Requirement 66: If the parameter is provided and its value is process
+    # then only jobs created by an OGC processes API SHALL be included in the
+    # response.
+    if (
+        job_type
+        and "process" in job_type
+        and status_info.get("type") != "process"
+    ):
+        return False
+
     # apply optional filtering by processIDs (query parameter)
     if process_ids:
         pid_val = status_info.get("processID")
@@ -238,6 +250,7 @@ def _matches_duration_filters(
 
 def parse_actinia_jobs(
     resp,
+    job_type: list | None = None,
     process_ids: list | None = None,
     status: list | None = None,
     datetime_param: str | None = None,
@@ -273,6 +286,7 @@ def parse_actinia_jobs(
         # apply optional filtering (query parameters)
         if not _matches_filters(
             status_info,
+            job_type,
             process_ids,
             status,
         ):

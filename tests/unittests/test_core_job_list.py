@@ -225,3 +225,34 @@ def test_parse_actinia_jobs_filter_by_min_max_duration():
     resp_run = MockResp({"resource_list": running_items})
     out_run = core.parse_actinia_jobs(resp_run, min_duration=100)
     assert len(out_run["jobs"]) == 1
+
+
+@pytest.mark.unittest
+def test_parse_actinia_jobs_filter_by_type():
+    """parse_actinia_jobs should filter jobs by type."""
+    # two completed jobs with different durations (seconds)
+    items = [
+        {
+            "resource_id": "resource_id-aaa",
+            "status": "finished",
+            "type": "other",
+            "links": [{"href": "http://example.com/x", "rel": "self"}],
+        },
+        {
+            "resource_id": "resource_id-bbb",
+            "status": "finished",
+            "type": "process",
+            "links": [{"href": "http://example.com/y", "rel": "self"}],
+        },
+    ]
+
+    resp = MockResp({"resource_list": items})
+
+    # filter for process -> only second job returned
+    existing_type = core.parse_actinia_jobs(resp, job_type=["process"])
+    assert len(existing_type["jobs"]) == 1
+    assert existing_type["jobs"][0]["processID"] == "resource_id-bbb"
+
+    # ignored filter -> both jobs returned
+    ignored_type = core.parse_actinia_jobs(resp, job_type=["other"])
+    assert len(ignored_type["jobs"]) == 2

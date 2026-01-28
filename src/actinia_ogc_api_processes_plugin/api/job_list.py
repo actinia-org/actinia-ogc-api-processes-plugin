@@ -42,6 +42,9 @@ class JobList(Resource):
     def get(self):
         """Return a list of jobs for the authenticated user."""
         try:
+            # read optional type query parameter (array)
+            job_type = request.args.getlist("type") or None
+
             # read optional processID query parameter (array)
             process_ids = request.args.getlist("processID") or None
             # support comma-separated single value
@@ -93,6 +96,7 @@ class JobList(Resource):
             if resp.status_code == 200:
                 jobs = parse_actinia_jobs(
                     resp,
+                    job_type,
                     process_ids,
                     job_status,
                     datetime,

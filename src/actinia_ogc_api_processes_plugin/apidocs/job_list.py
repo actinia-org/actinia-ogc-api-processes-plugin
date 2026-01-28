@@ -20,6 +20,14 @@ describe_job_list_get_docs = {
     "description": "List jobs for the requesting user.",
     "parameters": [
         {
+            "name": "type",
+            "in": "query",
+            "required": False,
+            "description": "Filter jobs by type.",
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        {
             "name": "processID",
             "in": "query",
             "required": False,
