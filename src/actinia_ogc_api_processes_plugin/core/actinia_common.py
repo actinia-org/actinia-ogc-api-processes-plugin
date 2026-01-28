@@ -100,7 +100,7 @@ def calculate_finished(data: dict):
     Calculate `finished` from accept_timestamp + time_delta (seconds)
     """
     status = data.get("status")
-    if status != "finished":
+    if status not in {"finished", "error", "terminated"}:
         return None
     start = data.get("accept_timestamp")
 
@@ -149,7 +149,14 @@ def parse_actinia_job(job_id, data):
 
     # Servers SHOULD set the value of the started field when a job begins
     # execution and is consuming compute resources.
-    # status_info["started"] = # TODO implement in actinia-core
+    try:
+        started = datetime.fromtimestamp(
+            float(data.get("start_timestamp")),
+            tz=timezone.utc,
+        )
+        status_info["started"] = started.replace(microsecond=0).isoformat()
+    except (TypeError, ValueError):
+        pass
 
     # Servers SHOULD set the value of the finished field when the execution of
     # a job has completed and the process is no longer consuming compute

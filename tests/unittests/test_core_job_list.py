@@ -12,6 +12,8 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from actinia_ogc_api_processes_plugin.core import job_list as core
@@ -156,3 +158,70 @@ def test_parse_actinia_jobs_filter_by_datetime():
         datetime_param="2021-01-02T00:00:00+00:00/..",
     )
     assert len(out_open_end["jobs"]) == 1
+
+
+@pytest.mark.unittest
+def test_parse_actinia_jobs_filter_by_min_max_duration():
+    """parse_actinia_jobs should filter jobs by minDuration and maxDuration."""
+    # base accept_timestamp
+    base = datetime.now(timezone.utc)
+    base_ts = base.replace(microsecond=0).timestamp()
+
+    # two completed jobs with different durations (seconds)
+    items = [
+        {
+            "resource_id": "resource_id-aaa",
+            "status": "finished",
+            "accept_timestamp": str(base_ts),
+            "start_timestamp": str(base_ts),
+            "time_delta": 30,
+            "links": [{"href": "http://example.com/x", "rel": "self"}],
+        },
+        {
+            "resource_id": "resource_id-bbb",
+            "status": "finished",
+            "accept_timestamp": str(base_ts),
+            "start_timestamp": str(base_ts),
+            "time_delta": 300,
+            "links": [{"href": "http://example.com/y", "rel": "self"}],
+        },
+    ]
+
+    resp = MockResp({"resource_list": items})
+
+    # minDuration: 100 -> only second job (300s) should remain
+    out_min = core.parse_actinia_jobs(resp, min_duration=100)
+    assert len(out_min["jobs"]) == 1
+    assert out_min["jobs"][0]["processID"] == "resource_id-bbb"
+
+    # maxDuration: 100 -> only first job (30s) should remain
+    out_max = core.parse_actinia_jobs(resp, max_duration=100)
+    assert len(out_max["jobs"]) == 1
+    assert out_max["jobs"][0]["processID"] == "resource_id-aaa"
+
+    # minDuration + maxDuration: narrow window 20..40 -> only first job
+    out_window = core.parse_actinia_jobs(
+        resp,
+        min_duration=20,
+        max_duration=40,
+    )
+    assert len(out_window["jobs"]) == 1
+    assert out_window["jobs"][0]["processID"] == "resource_id-aaa"
+
+    # test running job duration uses now - created
+    # create a running job with created 200 seconds ago
+    created_ago = (
+        datetime.now(timezone.utc) - timedelta(seconds=200)
+    ).timestamp()
+    running_items = [
+        {
+            "resource_id": "resource_id-ccc",
+            "status": "running",
+            "accept_timestamp": str(created_ago),
+            "start_timestamp": str(created_ago),
+            "links": [{"href": "http://example.com/r", "rel": "self"}],
+        },
+    ]
+    resp_run = MockResp({"resource_list": running_items})
+    out_run = core.parse_actinia_jobs(resp_run, min_duration=100)
+    assert len(out_run["jobs"]) == 1

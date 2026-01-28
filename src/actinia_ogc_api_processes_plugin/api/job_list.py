@@ -56,6 +56,10 @@ class JobList(Resource):
             if job_status and len(job_status) == 1 and "," in job_status[0]:
                 job_status = [s for s in job_status[0].split(",") if s]
 
+            # read optional duration filters (seconds)
+            min_duration = request.args.get("minDuration") or None
+            max_duration = request.args.get("maxDuration") or None
+
             # If a single status was requested and it maps to an actinia raw
             # type, forward the filter to actinia-core via the `type` query
             # parameter. If multiple job_status requested, request all jobs and
@@ -71,6 +75,8 @@ class JobList(Resource):
                     process_ids,
                     job_status,
                     datetime,
+                    min_duration,
+                    max_duration,
                 )
                 return make_response(jsonify(jobs), 200)
             elif resp.status_code == 401:

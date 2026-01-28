@@ -36,6 +36,22 @@ describe_job_list_get_docs = {
             "items": {"type": "string"},
         },
         {
+            "name": "minDuration",
+            "in": "query",
+            "required": False,
+            "description": "Filter jobs by duration. Value is in seconds.",
+            "type": "array",
+            "items": {"type": "integer"},
+        },
+        {
+            "name": "maxDuration",
+            "in": "query",
+            "required": False,
+            "description": "Filter jobs by duration. Value is in seconds.",
+            "type": "array",
+            "items": {"type": "integer"},
+        },
+        {
             "name": "datetime",
             "in": "query",
             "required": False,

@@ -181,11 +181,59 @@ def _matches_datetime_filters(
     return True
 
 
+def _matches_duration_filters(
+    status_info,
+    min_duration: int | None = None,
+    max_duration: int | None = None,
+) -> bool:
+    """Return True when `status_info` passes provided duration filters.
+
+    When status is "running": Duration is now - created. When status is
+    "successful", "failed", "dismissed": Duration is finished - created.
+    If no min/max provided returns True. If duration cannot be computed
+    while filtering is requested, return False.
+    """
+    if min_duration is None and max_duration is None:
+        return True
+
+    def _parse(dt_str):
+        v = dt_str.replace("Z", "+00:00") if dt_str.endswith("Z") else dt_str
+        try:
+            dt = datetime.fromisoformat(v)
+        except (TypeError, ValueError):
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+
+    s = (status_info.get("status") or "").lower()
+    started = _parse(status_info.get("started"))
+    finished = _parse(status_info.get("finished"))
+
+    if s == "running":
+        if not started:
+            return False
+        dur = (datetime.now(timezone.utc) - started).total_seconds()
+    elif s in {"successful", "failed", "dismissed"}:
+        if not started or not finished:
+            return False
+        dur = (finished - started).total_seconds()
+    else:
+        # duration undefined for other states -> exclude when filtering
+        return False
+
+    if min_duration is not None and dur < float(min_duration):
+        return False
+    return not (max_duration is not None and dur > float(max_duration))
+
+
 def parse_actinia_jobs(
     resp,
     process_ids: list | None = None,
     status: list | None = None,
     datetime_param: str | None = None,
+    min_duration: int | None = None,
+    max_duration: int | None = None,
 ):
     """Map actinia response into a `jobs` list structure.
 
@@ -224,6 +272,13 @@ def parse_actinia_jobs(
         if not _matches_datetime_filters(
             status_info,
             datetime_interval,
+        ):
+            continue
+
+        if not _matches_duration_filters(
+            status_info,
+            min_duration,
+            max_duration,
         ):
             continue
 
