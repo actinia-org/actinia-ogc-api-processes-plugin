@@ -66,10 +66,27 @@ describe_job_list_get_docs = {
             ),
             "type": "string",
         },
+        {
+            "name": "limit",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000,
+                "default": 100,
+            },
+            "description": "Maximum number of returned jobs (1-10000).",
+            "type": "integer",
+        },
     ],
     "responses": {
         "200": {
             "description": "This response returns the jobs list.",
+        },
+        "400": {
+            "description": "Client error",
+            "schema": SimpleStatusCodeResponseModel,
         },
         "401": {
             "description": "Unauthorized Access",

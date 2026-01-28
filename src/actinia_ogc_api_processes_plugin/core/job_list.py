@@ -24,7 +24,10 @@ from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 from actinia_ogc_api_processes_plugin.resources.logging import log
 
 
-def get_actinia_jobs(actinia_type: str | None = None):
+def get_actinia_jobs(
+    actinia_type: str | None = None,
+    limit: int | None = None,
+):
     """Retrieve job list from actinia for current user.
 
     Returns the raw requests.Response from actinia so callers can decide how
@@ -39,6 +42,10 @@ def get_actinia_jobs(actinia_type: str | None = None):
     params = None
     if actinia_type:
         params = {"type": actinia_type}
+    if limit is not None:
+        if not params:
+            params = {}
+        params["num"] = str(limit)
     try:
         if params:
             return requests.get(url, params=params, **kwargs)
@@ -197,6 +204,8 @@ def _matches_duration_filters(
         return True
 
     def _parse(dt_str):
+        if not dt_str:
+            return None
         v = dt_str.replace("Z", "+00:00") if dt_str.endswith("Z") else dt_str
         try:
             dt = datetime.fromisoformat(v)

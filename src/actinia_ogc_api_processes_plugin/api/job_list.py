@@ -60,6 +60,27 @@ class JobList(Resource):
             min_duration = request.args.get("minDuration") or None
             max_duration = request.args.get("maxDuration") or None
 
+            # read optional limit parameter
+            limit = request.args.get("limit") or 100
+            try:
+                limit = int(limit)
+            except (TypeError, ValueError):
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=400,
+                        message="ERROR: Invalid limit parameter",
+                    ),
+                )
+                return make_response(res, 400)
+            if limit < 1 or limit > 10000:
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=400,
+                        message="ERROR: Limit must be between 1 and 10000",
+                    ),
+                )
+                return make_response(res, 400)
+
             # If a single status was requested and it maps to an actinia raw
             # type, forward the filter to actinia-core via the `type` query
             # parameter. If multiple job_status requested, request all jobs and
@@ -68,7 +89,7 @@ class JobList(Resource):
             if job_status and len(job_status) == 1:
                 actinia_type = map_status_reverse(job_status[0])
 
-            resp = get_actinia_jobs(actinia_type=actinia_type)
+            resp = get_actinia_jobs(actinia_type=actinia_type, limit=limit)
             if resp.status_code == 200:
                 jobs = parse_actinia_jobs(
                     resp,
