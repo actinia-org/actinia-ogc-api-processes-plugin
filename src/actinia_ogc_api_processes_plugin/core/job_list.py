@@ -18,7 +18,7 @@ from flask import has_request_context, request
 from requests.auth import HTTPBasicAuth
 
 from actinia_ogc_api_processes_plugin.core.actinia_common import (
-    parse_actinia_job,
+    safe_parse_actinia_job,
 )
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 from actinia_ogc_api_processes_plugin.resources.logging import log
@@ -60,26 +60,6 @@ def _generate_new_joblinks(job_id: str) -> list[dict]:
     base = request.base_url.rstrip("/") if has_request_context() else "/jobs"
     job_href = f"{base}/{job_id}"
     return [{"href": job_href, "rel": "status"}]
-
-
-def _safe_parse_item(item):
-    """Return (job_id, status_info) or (None, None) for invalid items."""
-    if not isinstance(item, dict):
-        return None, None
-    job_id = item.get("resource_id").removeprefix("resource_id-")
-    if not job_id:
-        return None, None
-    try:
-        status_info = parse_actinia_job(job_id, item)
-    except (TypeError, ValueError):
-        status_info = {
-            "jobID": job_id,
-            "type": "process",
-            "processID": item.get("resource_id"),
-            "status": item.get("status"),
-            "links": [],
-        }
-    return job_id, status_info
 
 
 def _get_datetime_interval(datetime_param):
@@ -269,7 +249,7 @@ def parse_actinia_jobs(
     jobs = []
 
     for item in items:
-        job_id, status_info = _safe_parse_item(item)
+        job_id, status_info = safe_parse_actinia_job(item)
         if not job_id:
             continue
 
