@@ -18,6 +18,9 @@ from actinia_ogc_api_processes_plugin.api.job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.api.process_description import (
     ProcessDescription,
 )
+from actinia_ogc_api_processes_plugin.api.process_execution import (
+    ProcessExecution,
+)
 from actinia_ogc_api_processes_plugin.api.process_list import ProcessList
 
 
@@ -31,3 +34,7 @@ def create_endpoints(flask_api: Api) -> None:
     apidoc.add_resource(JobStatusInfo, "/jobs/<string:job_id>")
     apidoc.add_resource(ProcessList, "/processes")
     apidoc.add_resource(ProcessDescription, "/processes/<string:process_id>")
+    apidoc.add_resource(
+        ProcessExecution,
+        "/processes/<string:process_id>/execution",
+    )
