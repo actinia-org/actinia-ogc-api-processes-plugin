@@ -249,10 +249,14 @@ def test_parse_actinia_jobs_filter_by_type():
     resp = MockResp({"resource_list": items})
 
     # filter for process -> only second job returned
-    existing_type = core.parse_actinia_jobs(resp, job_type=["process"])
+    existing_type = core.parse_actinia_jobs(resp, job_types=["process"])
     assert len(existing_type["jobs"]) == 1
     assert existing_type["jobs"][0]["processID"] == "resource_id-bbb"
 
     # ignored filter -> both jobs returned
-    ignored_type = core.parse_actinia_jobs(resp, job_type=["other"])
+    ignored_type = core.parse_actinia_jobs(resp, job_types=["other"])
     assert len(ignored_type["jobs"]) == 2
+
+    # mixed filter -> both jobs returned
+    mixed_type = core.parse_actinia_jobs(resp, job_types=["process,other"])
+    assert len(mixed_type["jobs"]) == 2

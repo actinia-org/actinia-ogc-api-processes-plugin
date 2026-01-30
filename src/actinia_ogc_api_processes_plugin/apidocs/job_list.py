@@ -82,7 +82,7 @@ describe_job_list_get_docs = {
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 10000,
-                "default": 100,
+                "default": 10000,
             },
             "description": "Maximum number of returned jobs (1-10000).",
             "type": "integer",

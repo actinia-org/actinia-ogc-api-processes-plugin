@@ -103,3 +103,17 @@ class JobListTest(TestCase):
         assert resp.status_code == 400
         assert hasattr(resp, "json")
         assert "message" in resp.json
+
+    @pytest.mark.integrationtest
+    def test_get_jobs_no_job(self) -> None:
+        """Wrong limit parameter GET to /jobs?processID=not_existing."""
+        resp = self.app.get(
+            "/jobs",
+            query_string={"processID": "not_existing"},
+            headers=self.HEADER_AUTH,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 200
+        assert hasattr(resp, "json")
+        assert "jobs" in resp.json
+        assert len(resp.json["jobs"]) == 0

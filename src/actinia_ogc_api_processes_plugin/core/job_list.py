@@ -57,7 +57,7 @@ def get_actinia_jobs(
 
 def _generate_new_joblinks(job_id: str) -> list[dict]:
     """Make sure job_id is in the link."""
-    base = request.url.rstrip("/") if has_request_context() else "/jobs"
+    base = request.base_url.rstrip("/") if has_request_context() else "/jobs"
     job_href = f"{base}/{job_id}"
     return [{"href": job_href, "rel": "status"}]
 
@@ -127,7 +127,7 @@ def _get_datetime_interval(datetime_param):
 
 def _matches_filters(
     status_info,
-    job_type: list | None,
+    job_types: list | None,
     process_ids: list | None,
     status: list | None,
 ) -> bool:
@@ -137,8 +137,8 @@ def _matches_filters(
     # then only jobs created by an OGC processes API SHALL be included in the
     # response.
     if (
-        job_type
-        and "process" in job_type
+        job_types
+        and "process" in job_types
         and status_info.get("type") != "process"
     ):
         return False
@@ -250,7 +250,7 @@ def _matches_duration_filters(
 
 def parse_actinia_jobs(
     resp,
-    job_type: list | None = None,
+    job_types: list | None = None,
     process_ids: list | None = None,
     status: list | None = None,
     datetime_param: str | None = None,
@@ -286,7 +286,7 @@ def parse_actinia_jobs(
         # apply optional filtering (query parameters)
         if not _matches_filters(
             status_info,
-            job_type,
+            job_types,
             process_ids,
             status,
         ):
