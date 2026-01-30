@@ -28,14 +28,12 @@ CORS(flask_app)
 
 API_VERSION = "v1"
 
-URL_PREFIX = f"/api/{API_VERSION}"
-
 apidoc = Api(
     flask_app,
     title="actinia-ogc-api-processes-plugin",
     # prefix=URL_PREFIX,
     api_version=API_VERSION,
-    api_spec_url=f"{URL_PREFIX}/swagger",
+    api_spec_url="/api",
     schemes=["https", "http"],
     consumes=["application/json"],
     description="""OGC API Processes for actinia

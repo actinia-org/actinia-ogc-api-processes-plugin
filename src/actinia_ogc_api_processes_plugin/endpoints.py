@@ -23,9 +23,16 @@ from actinia_ogc_api_processes_plugin.api.process_list import ProcessList
 
 def create_endpoints(flask_api: Api) -> None:
     """Create plugin endpoints."""
+    app = flask_api.app
     apidoc = flask_api
 
     # Endpoints following: https://docs.ogc.org/is/18-062r2/18-062r2.html#toc0
+
+    @app.route("/api")
+    def api_endpoint():
+        # flask_restful_swagger_2 appends api_spec_url always with .json:
+        # map /api.json to /api
+        return app.test_client().get("/api.json")
 
     apidoc.add_resource(JobList, "/jobs")
     apidoc.add_resource(JobStatusInfo, "/jobs/<string:job_id>")
