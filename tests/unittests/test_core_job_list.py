@@ -258,14 +258,14 @@ def test_parse_actinia_jobs_filter_by_type():
     assert len(ignored_type["jobs"]) == 1
 
     # mixed filter -> both jobs returned
-    mixed_type1 = core.parse_actinia_jobs(resp, job_types=["process","other"])
+    mixed_type1 = core.parse_actinia_jobs(resp, job_types=["process", "other"])
     assert len(mixed_type1["jobs"]) == 2
 
     # mixed filter -> only second job returned
-    mixed_type2 = core.parse_actinia_jobs(resp, job_types=["process","another"])
+    mixed_type2 = core.parse_actinia_jobs(resp, job_types=["process", "noone"])
     assert len(mixed_type2["jobs"]) == 1
     assert existing_type["jobs"][0]["processID"] == "resource_id-bbb"
 
     # mixed filter -> no job returned
-    mixed_type3 = core.parse_actinia_jobs(resp, job_types=["noone","another"])
+    mixed_type3 = core.parse_actinia_jobs(resp, job_types=["noone", "another"])
     assert len(mixed_type3["jobs"]) == 0

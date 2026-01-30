@@ -137,10 +137,7 @@ def _matches_filters(
     # then only jobs created by an OGC processes API SHALL be included in the
     # response.
     # Additionally, support filtering by other job types as well.
-    if (
-        job_types
-        and status_info.get("type") not in job_types
-    ):
+    if job_types and status_info.get("type") not in job_types:
         return False
 
     # apply optional filtering by processIDs (query parameter)
