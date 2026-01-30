@@ -43,7 +43,9 @@ class JobList(Resource):
         """Return a list of jobs for the authenticated user."""
         try:
             # read optional type query parameter (array)
-            job_type = request.args.getlist("type") or None
+            job_types = request.args.getlist("type") or None
+            if job_types and len(job_types) == 1 and "," in job_types[0]:
+                job_types = [t for t in job_types[0].split(",") if t]
 
             # read optional processID query parameter (array)
             process_ids = request.args.getlist("processID") or None
@@ -64,7 +66,7 @@ class JobList(Resource):
             max_duration = request.args.get("maxDuration") or None
 
             # read optional limit parameter
-            limit = request.args.get("limit") or 100
+            limit = request.args.get("limit") or 10000
             try:
                 limit = int(limit)
             except (TypeError, ValueError):
@@ -96,7 +98,7 @@ class JobList(Resource):
             if resp.status_code == 200:
                 jobs = parse_actinia_jobs(
                     resp,
-                    job_type,
+                    job_types,
                     process_ids,
                     job_status,
                     datetime,
