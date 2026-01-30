@@ -136,10 +136,10 @@ def _matches_filters(
     # Requirement 66: If the parameter is provided and its value is process
     # then only jobs created by an OGC processes API SHALL be included in the
     # response.
+    # Additionally, support filtering by other job types as well.
     if (
         job_types
-        and "process" in job_types
-        and status_info.get("type") != "process"
+        and status_info.get("type") not in job_types
     ):
         return False
 
