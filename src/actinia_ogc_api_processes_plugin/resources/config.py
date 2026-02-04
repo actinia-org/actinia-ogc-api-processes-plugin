@@ -28,8 +28,9 @@ GENERATED_CONFIG = (
 class ACTINIA:
     """Default config for actinia processing."""
 
-    processing_base_url = "http://localhost:3000/"
+    processing_base_url = "http://localhost:8088/"
     use_actinia_modules = True
+    default_project = "nc_spm_08"
 
 
 class LOGCONFIG:
@@ -76,6 +77,11 @@ class Configfile:
                 ACTINIA.use_actinia_modules = config.getboolean(
                     "ACTINIA",
                     "use_actinia_modules",
+                )
+            if config.has_option("ACTINIA", "default_project"):
+                ACTINIA.default_project = config.getboolean(
+                    "ACTINIA",
+                    "default_project",
                 )
 
         # LOGGING
