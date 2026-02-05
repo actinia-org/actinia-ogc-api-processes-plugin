@@ -79,7 +79,7 @@ class Configfile:
                     "use_actinia_modules",
                 )
             if config.has_option("ACTINIA", "default_project"):
-                ACTINIA.default_project = config.getboolean(
+                ACTINIA.default_project = config.get(
                     "ACTINIA",
                     "default_project",
                 )
