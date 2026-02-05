@@ -63,13 +63,16 @@ def post_process_execution(
         f"{ACTINIA.processing_base_url}/actinia_modules/{process_id}",
         **kwargs,
     )
+    if resp.status_code != 200:
+        return resp
+
     # TODO: Do we stick to the convention introduced in
     # https://github.com/actinia-org/actinia-module-plugin/pull/64
     # that the project name must be set in the template?
     # Or do we add it as a parameter in the process description?
     # If in template, a string would make more sense instead of listing
     # all projects which with the module was tested.
-    if resp.status_code == 200 and len(resp.json().get("projects")) > 1:
+    if len(resp.json().get("projects")) > 1:
         project_name = resp.json().get("projects")[0]
 
     pc = _transform_to_actinia_process_chain(process_id, postbody)

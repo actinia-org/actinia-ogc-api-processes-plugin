@@ -15,6 +15,15 @@ from flask import Response
 
 from tests.testsuite import TestCase
 
+test_process_input = {
+    "inputs": {
+        "url_to_geojson_point": "https://raw.githubusercontent.com/"
+        "mmacata/pagestest/gh-pages/pointInBonn.geojson",
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document",
+}
+
 
 class ProcessExecution(TestCase):
     """Test class for executing Processes.
@@ -31,7 +40,7 @@ class ProcessExecution(TestCase):
         resp = self.app.post(
             "/processes/point_in_polygon/execution",
             headers=self.HEADER_AUTH,
-            json={},
+            json=test_process_input,
         )
         assert isinstance(resp, Response)
         assert resp.status_code == 201
@@ -48,7 +57,7 @@ class ProcessExecution(TestCase):
         resp = self.app.post(
             "/processes/invalid_process_id/execution",
             headers=self.HEADER_AUTH,
-            json={},
+            json=test_process_input,
         )
         assert isinstance(resp, Response)
         assert resp.status_code == 404
@@ -68,7 +77,7 @@ class ProcessExecution(TestCase):
         resp = self.app.post(
             "/processes/point_in_polygon/execution",
             headers=self.HEADER_AUTH_WRONG,
-            json={},
+            json=test_process_input,
         )
         assert isinstance(resp, Response)
         assert resp.status_code == 401
