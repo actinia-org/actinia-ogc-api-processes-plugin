@@ -49,6 +49,9 @@ def get_results(resp):
         ind = 0
         for pc_el in data["process_chain_list"][0]["list"]:
             if "exporter" in pc_el["module"]:
+                # TODO: dont use url based on ind
+                # instead get output name + format and match with corresponding resources link
+                # Note: exporter -> vector zipped, raster not, other formats?
                 result_format[pc_el["id"]] = {
                     "href": data["urls"]["resources"][ind],
                     "type": "application/json"
