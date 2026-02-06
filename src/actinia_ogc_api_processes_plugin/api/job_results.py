@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+"""SPDX-FileCopyrightText: (c) 2026 by mundialis GmbH & Co. KG.
+
+SPDX-License-Identifier: GPL-3.0-or-later
+
+JobResults endpoint implementation.
+"""
+from __future__ import annotations
+
+__license__ = "GPL-3.0-or-later"
+__author__ = "Lina Krisztian"
+__copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
+__maintainer__ = "mundialis GmbH & Co. KG"
+
+
+from flask import jsonify, make_response
+from flask_restful_swagger_2 import Resource, swagger
+from requests.exceptions import ConnectionError as req_ConnectionError
+
+from actinia_ogc_api_processes_plugin.apidocs import job_results
+from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
+from actinia_ogc_api_processes_plugin.core.job_status_info import (
+    get_actinia_job,
+    get_job_status_info
+)
+from actinia_ogc_api_processes_plugin.core.job_results import get_results
+from actinia_ogc_api_processes_plugin.model.response_models import (
+    SimpleStatusCodeResponseModel,
+    StatusInfoResponseModel,
+)
+from actinia_ogc_api_processes_plugin.resources.logging import log
+
+
+class JobResults(Resource):
+    """JobResults handling."""
+
+    def __init__(self) -> None:
+        """Initialise."""
+        self.msg = "Return job results"
+
+    @require_basic_auth()
+    @swagger.doc(job_results.describe_job_result_get_docs)
+    def get(self, job_id):
+        """Return job results for a given job id."""
+        try:
+            status_code, status_info, resp = get_job_status_info(job_id)
+            if status_code == 200:
+                if status_info["status"] == "successful":
+                    res, status_code = get_results(resp)
+                    return make_response(res, status_code)
+            if status_code == 401:
+                log.error("ERROR: Unauthorized Access")
+                log.debug(f"actinia response: {getattr(resp, 'text', '')}")
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=401,
+                        message="ERROR: Unauthorized Access",
+                    ),
+                )
+                return make_response(res, 401)
+            # if status_code in {400, 404}:
+            #     log.error("ERROR: No such job")
+            #     log.debug(f"actinia response: {getattr(resp, 'text', '')}")
+            #     return JobStatusInfo._not_found_response(job_id)
+            # fallback
+            log.error("ERROR: Internal Server Error")
+            code = getattr(resp, "status_code", status_code)
+            text = getattr(resp, "text", "")
+            log.debug(f"actinia status code: {code}")
+            log.debug(f"actinia response: {text}")
+            res = jsonify(
+                SimpleStatusCodeResponseModel(
+                    status=500,
+                    message="ERROR: Internal Server Error",
+                ),
+            )
+            return make_response(res, 500)
+        except req_ConnectionError as e:
+            log.error(f"Connection ERROR: {e}")
+            res = jsonify(
+                SimpleStatusCodeResponseModel(
+                    status=503,
+                    message=f"Connection ERROR: {e}",
+                ),
+            )
+            return make_response(res, 503)
+
+
+    # @staticmethod
+    # def _build_status_info_kwargs(status_info: dict) -> dict:
+    #     """Return kwargs for StatusInfoResponseModel from a status_info dict.
+
+    #     Keeps mapping logic in one place for `get` and `delete` methods.
+    #     """
+    #     model_kwargs = {}
+    #     props = StatusInfoResponseModel.properties
+    #     for k in props:
+    #         if k in status_info:
+    #             model_kwargs[k] = status_info[k]
+
+    #     return model_kwargs
+
+    # @staticmethod
+    # def _not_found_response(job_id: str) -> tuple:
+    #     """Return a standardized 404 OGC exception response for a job."""
+    #     res = jsonify(
+    #         {
+    #             "type": (
+    #                 "http://www.opengis.net/def/exceptions/"
+    #                 "ogcapi-processes-1/1.0/no-such-job"
+    #             ),
+    #             "title": "No Such Job",
+    #             "status": 404,
+    #             "detail": f"Job '{job_id}' not found",
+    #         },
+    #     )
+    #     return make_response(res, 404)
+
