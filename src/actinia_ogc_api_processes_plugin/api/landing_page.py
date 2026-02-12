@@ -3,7 +3,7 @@
 
 SPDX-License-Identifier: GPL-3.0-or-later
 
-Process List class
+Landing page class
 """
 
 __license__ = "GPL-3.0-or-later"
