@@ -18,9 +18,7 @@ describe_landing_page_get_docs = {
     "description": "Process identifiers, links to process descriptions.",
     "responses": {
         "200": {
-            "description": (
-                "This response returns the landing page."
-            ),
+            "description": ("This response returns the landing page."),
         },
     },
 }

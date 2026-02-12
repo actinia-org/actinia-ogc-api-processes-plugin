@@ -47,7 +47,7 @@ class LandingPage(Resource):
                 "href": f"{base}/api.json",
                 "rel": "service-desc",
                 "type": "application/json",
-        		"title": "API definition for this endpoint as JSON"
+                "title": "API definition for this endpoint as JSON",
             },
             {
                 "href": f"{base}/api",
@@ -76,7 +76,8 @@ class LandingPage(Resource):
         ]
         landing = {
             "title": "actinia OGC API - Processes plugin",
-            "description": "OGC API landing page exposing available resources.",
+            "description": "OGC API landing page exposing available "
+            "resources.",
             "links": links,
         }
         return make_response(jsonify(landing), 200)
