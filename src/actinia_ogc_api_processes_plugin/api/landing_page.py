@@ -57,13 +57,13 @@ class LandingPage(Resource):
             },
             {
                 "href": f"{base}/conformance",
-                "rel": "conformance",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/conformance",
                 "type": "application/json",
                 "title": "Conformance declaration",
             },
             {
                 "href": f"{base}/processes",
-                "rel": "processes",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/processes",
                 "type": "application/json",
                 "title": "Processes collection",
             },
