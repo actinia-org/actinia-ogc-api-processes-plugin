@@ -41,12 +41,9 @@ class LandingPageTest(TestCase):
         assert "links" in resp.json, "There is no 'links' inside the response"
         # -- test "service-desc" and/or "service-doc" link
         links = resp.json["links"]
-        assert (
-            any(item.get("rel") == "service-doc" for item in links) is True
-        ), "No 'service-desc' in links"
-        assert any(
+        assert any(item.get("rel") == "service-doc" for item in links) or any(
             item.get("rel") == "service-doc" for item in links
-        ), "No 'service-doc' in links"
+        ), "No 'service-desc' or 'service-doc' in links"
         # -- test conformance class declaration
         assert any(
             item.get("rel") == self.CONFORMANCE_REL for item in links

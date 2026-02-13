@@ -15,7 +15,6 @@ from flask import jsonify, make_response, request
 from flask_restful_swagger_2 import Resource, swagger
 
 from actinia_ogc_api_processes_plugin.apidocs import landing_page
-from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
 )
@@ -28,7 +27,6 @@ class LandingPage(Resource):
         """LandingPage class initialisation."""
         self.msg = "Return landing page"
 
-    @require_basic_auth()
     @swagger.doc(landing_page.describe_landing_page_get_docs)
     def get(self):
         """LandingPage get method.
