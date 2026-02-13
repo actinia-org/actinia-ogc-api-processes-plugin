@@ -13,6 +13,7 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 
 from flask_restful_swagger_2 import Api
 
+from actinia_ogc_api_processes_plugin.api.conformance import Conformance
 from actinia_ogc_api_processes_plugin.api.job_list import JobList
 from actinia_ogc_api_processes_plugin.api.job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.api.landing_page import LandingPage
@@ -36,6 +37,7 @@ def create_endpoints(flask_api: Api) -> None:
         return app.test_client().get("/api.json")
 
     apidoc.add_resource(LandingPage, "/")
+    apidoc.add_resource(Conformance, "/conformance")
     apidoc.add_resource(JobList, "/jobs")
     apidoc.add_resource(JobStatusInfo, "/jobs/<string:job_id>")
     apidoc.add_resource(ProcessList, "/processes")

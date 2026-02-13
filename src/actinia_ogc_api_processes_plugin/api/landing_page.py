@@ -67,7 +67,7 @@ class LandingPage(Resource):
             },
             {
                 "href": f"{base}/jobs",
-                "rel": "jobs",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/job-list",
                 "type": "application/json",
                 "title": "Jobs collection",
             },
