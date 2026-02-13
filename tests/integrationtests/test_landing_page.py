@@ -27,7 +27,7 @@ class LandingPageTest(TestCase):
 
         Succesfull query
         """
-        resp = self.app.get("/", headers=self.HEADER_AUTH)
+        resp = self.app.get("/")
         assert isinstance(
             resp,
             Response,
