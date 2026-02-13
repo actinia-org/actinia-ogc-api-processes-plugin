@@ -8,13 +8,14 @@ Add endpoints to flask app with endpoint definitions and routes
 
 __license__ = "GPL-3.0-or-later"
 __author__ = "Carmen Tawalika, Anika Weinmann"
-__copyright__ = "Copyright 2018-2025 mundialis GmbH & Co. KG"
+__copyright__ = "Copyright 2018-2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 from flask_restful_swagger_2 import Api
 
 from actinia_ogc_api_processes_plugin.api.job_list import JobList
 from actinia_ogc_api_processes_plugin.api.job_status_info import JobStatusInfo
+from actinia_ogc_api_processes_plugin.api.landing_page import LandingPage
 from actinia_ogc_api_processes_plugin.api.process_description import (
     ProcessDescription,
 )
@@ -34,6 +35,7 @@ def create_endpoints(flask_api: Api) -> None:
         # map /api.json to /api
         return app.test_client().get("/api.json")
 
+    apidoc.add_resource(LandingPage, "/")
     apidoc.add_resource(JobList, "/jobs")
     apidoc.add_resource(JobStatusInfo, "/jobs/<string:job_id>")
     apidoc.add_resource(ProcessList, "/processes")
