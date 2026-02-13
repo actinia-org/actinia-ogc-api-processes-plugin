@@ -13,7 +13,7 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
-from flask import jsonify, make_response
+from flask import jsonify, make_response, request
 from flask_restful_swagger_2 import Resource, swagger
 from requests.exceptions import ConnectionError as req_ConnectionError
 
@@ -43,10 +43,33 @@ class JobResults(Resource):
     def get(self, job_id):
         """Return job results for a given job id."""
         try:
+            # read optional resultResponse parameter
+            resultResponse = request.args.get("resultResponse") or None
+            if resultResponse and (resultResponse != "raw" and resultResponse != "document"):
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=400,
+                        message="ERROR: resultResponse must be 'raw' or 'document'",
+                    ),
+                )
+                return make_response(res, 400)
+            # read optional transmissionMode parameter
+            transmissionMode = request.args.get("transmissionMode") or None
+            if transmissionMode and (transmissionMode != "value" and transmissionMode != "reference" and transmissionMode != "mixed"):
+                res = jsonify(
+                                SimpleStatusCodeResponseModel(
+                        status=400,
+                        message="ERROR: transmissionMode must be 'value', 'reference' or 'mixed'",
+                    ),
+                )
+                return make_response(res, 400)
+
             status_code, status_info, resp = get_job_status_info(job_id)
             if status_code == 200:
                 if status_info["status"] == "successful":
-                    res, status_code = get_results(resp)
+                    res, status_code = get_results(resp, resultResponse, transmissionMode)
+                    # TODO: mit "raw" and transmissionMode == "reference" -> soll status_code=204
+                    #       dann liefert make_response aber "no content"
                     return make_response(res, status_code)
             if status_code == 401:
                 log.error("ERROR: Unauthorized Access")

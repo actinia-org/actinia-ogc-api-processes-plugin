@@ -14,8 +14,21 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 from flask import jsonify
 
 def format_to_prefix(type, format):
-    # mapping of formats see here:
-    # https://github.com/actinia-org/actinia-processing-lib/blob/main/src/actinia_processing_lib/ephemeral_processing_with_export.py
+    """
+    Generate a file prefix based on the given type and format.
+
+    This function maps a combination of data type and format to a specific file
+    prefix or extension. The mapping is based on predefined rules for vector,
+    raster, strds, and file types
+    (see also https://github.com/actinia-org/actinia-processing-lib/blob/main/src/actinia_processing_lib/ephemeral_processing_with_export.py).
+
+    Args:
+        type (str): The type of data. Supported values are:
+        format (str): The format of the data. Supported values depend on the type:
+
+    Returns:
+        str: The file prefix or extension corresponding to the given type and format.
+    """
     prefix = ""
     if type == "vector":
         if format == "GPKG":
@@ -45,72 +58,142 @@ def format_to_prefix(type, format):
             prefix = ".txt.zip"
     return prefix
 
-def extract_export(pc_el):
-    # get output name + format for later matching with corresponding resources link
+def format_to_mimetype(type, format):
+    # see e.g. https://wiki.selfhtml.org/wiki/MIME-Type/%C3%9Cbersicht
+    mimetype = ""
 
-    for export_params in pc_el["outputs"]: # TODO: check for input and output
-        # get value name
-        if "$file::" in export_params["value"]:
-            # file export generated from GRASS GIS module
-            # (value with $file::unique_id)
-            export_value = export_params["value"].split("$file::")[1]
+    if type == "vector":
+        mimetype = "application/zip"
+    # if format == "GeoJSON":
+    #     mimetype = "application/geo+json"
+    # if format == "CSV":
+    #     mimetype = "text/csv"
+    if type == "raster":
+        if format == "GTiff" or format == "COG":
+            mimetype = "image/tiff"
+    if type == "strds":
+        mimetype = "application/x-tar+gzip"
+    if type == "file":
+        if format == "PDF":
+            mimetype = "application/pdf"
         else:
-            export_value = export_params["value"]
-        export_prefix = format_to_prefix(
-            export_params["export"]["type"],
-            export_params["export"]["format"]
-        )
-        export_out = export_params["value"] + export_prefix
-        export_out_dict_key = f"{pc_el['id']}_{export_value}_{export_params['export']['type']}_{export_params['export']['format']}"
-        return export_out_dict_key, export_out
-    
-def get_results(resp):
+            mimetype = "application/zip"
 
-    # hardcoded for testing!
-    result_mode = {
-        "response": "document",
-        "transmissionMode": "reference",
-    }
-    
-    data = resp.json()
-    result_format = dict()
-    status_code = 200
-    if result_mode["response"] == "document" and result_mode["transmissionMode"] == "reference":
-        export_out_dict = dict()
-        for pc_el in data["process_chain_list"][0]["list"]:
-            if "exporter" in pc_el["module"]:
-                # Note: POSTGIS not supported
-                # TODO: exception for postgsi needed?
-                # results from exporter, see here:
-                # https://github.com/actinia-org/actinia-processing-lib/blob/main/src/actinia_processing_lib/ephemeral_processing_with_export.py
-                export_out_dict_key, exporter_out = extract_export(pc_el)
-                export_out_dict[export_out_dict_key] = exporter_out
-            elif "outputs" in pc_el: # TODO: sowohl für outputs als auch inputs abfragen
-                for export_params in pc_el["outputs"]: 
-                    if "export" in export_params:
-                        export_out_dict_key, exporter_out = extract_export(pc_el)
-                        export_out_dict[export_out_dict_key] = exporter_out
+    return mimetype
 
-        for key, value in export_out_dict.items():
-            resources = data["urls"]["resources"]
-            match_resource_url = [url for url in resources if value in url]
-            result_format[key] = {
-                "href": match_resource_url[0],
-                "type": "application/json" # TODO: /tif, /zip, etc.
-                # "rel": -> wenn es passenden type gibt
+def extract_export(pc_el_inout_entry, pc_el_id, resources):
+    """
+    This function retrieves the exported filename from the provided process chain
+    element entry and matches it with the corresponding resource URLs.
+    It returns the formatted result as a dictionary containing the export information,
+    including the resource URL and MIME type.
+
+    Args:
+        pc_el_inout_entry (dict): A dictionary containing the export entry details,
+            including the value, export type, and format.
+        pc_el_id (str): The unique identifier for the process chain element.
+        resources (list): List of all resource URLs to match against the export output.
+
+    Returns:
+        dict: A dictionary containing the export information:
+            - "href" (str): The matched resource URL.
+            - "type" (str): The MIME type of the export output.
+    """
+    
+    # get value name
+    if "$file::" in pc_el_inout_entry["value"]:
+        # file export generated from GRASS GIS module
+        # (value with $file::unique_id)
+        export_value = pc_el_inout_entry["value"].split("$file::")[1]
+    else:
+        export_value = pc_el_inout_entry["value"]
+
+    # get export type and format
+    export_prefix = format_to_prefix(
+        pc_el_inout_entry["export"]["type"],
+        pc_el_inout_entry["export"]["format"]
+    )
+    export_out = export_value + export_prefix
+
+    # get mimetype of output
+    export_mimetype = format_to_mimetype(
+        pc_el_inout_entry["export"]["type"],
+        pc_el_inout_entry["export"]["format"]
+    )
+
+    # match resource url + write results formated to dict
+    export_out_dict = dict()
+    export_out_dict_key = f"{pc_el_id}_{export_value}_{pc_el_inout_entry['export']['type']}_{pc_el_inout_entry['export']['format']}"
+    match_resource_url = [url for url in resources if export_out in url]
+    if match_resource_url:
+        export_out_dict[export_out_dict_key] = {
+            "href": match_resource_url[0],
+            "type": export_mimetype
+            # "rel": -> NOTE: wenn es passenden type gibt
             }
+
+    return export_out_dict
+    
+def get_results(
+        resp,
+        resultResponse: str | None = None,
+        transmissionMode: str | None = None,
+):
+
+    data = resp.json()
+    resources = data["urls"]["resources"]
+    result_format = dict()
+
+    # -- Filter results from actinia
+    # Exported results
+    for pc_el in data["process_chain_list"][0]["list"]:
+        if "inputs" in pc_el:
+            for pc_inp_el in pc_el["inputs"]:
+                if "export" in pc_inp_el:
+                    export_out_dict = extract_export(pc_inp_el, pc_el["id"], resources)
+                    result_format.update(export_out_dict)
+        if "outputs" in pc_el:
+            for pc_out_el in pc_el["outputs"]:
+                if "export" in pc_out_el:
+                    export_out_dict = extract_export(pc_out_el, pc_el["id"], resources)
+                    result_format.update(export_out_dict)
+
+    # Results from stdout
+    stdout_ids = list()
+    stdout_dict = {}
+    for pc_el in data["process_chain_list"][0]["list"]:
+        if "stdout" in pc_el:
+            stdout_ids.append(pc_el["id"])
+    for stdout_id in stdout_ids:
+        for pc_log_el in data["process_log"]:
+            if stdout_id == pc_log_el["id"]:
+                stdout_dict[stdout_id] = pc_log_el["stdout"]
+    result_format.update(stdout_dict)
+
+    # -- Return results dependent on key-value of response and transmissionMode
+
+    # TODO: set reasonable default values
+    if not resultResponse:
+        resultResponse = "document"
+    if not transmissionMode:
+        transmissionMode = "reference"
+
+    status_code = 200
+    if resultResponse == "document" and transmissionMode == "reference":
         return jsonify(result_format), status_code
-    elif result_mode["response"] == "document" and result_mode["transmissionMode"] == "value":
-        # stdout
+    elif resultResponse == "document" and transmissionMode == "value":
         return jsonify(result_format), status_code
-    # elif result_mode["response"] == "document" and result_mode["transmissionMode"] == "mixed":
+    # elif resultResponse == "document" and transmissionMode == "mixed":
         # allowed?
-    # elif result_mode["response"] == "raw" and result_mode["transmissionMode"] == "reference":
-        # status_code = 204
+    elif resultResponse == "raw" and transmissionMode == "reference":
+        status_code = 204
+        return jsonify(result_format), status_code
         # direkt match_Resouce_url zurück geben
         # stdout nicht als reference, nur value
-    # elif result_mode["response"] == "raw" and result_mode["transmissionMode"] == "value":
+    # elif resultResponse == "raw" and transmissionMode == "value":
         # request auf resource_url? (redirect mit zurückgebbar)
         # z.B: mit from flask import redirect
-    # elif result_mode["response"] == "raw" and result_mode["transmissionMode"] == "mixed":
+    # elif resultResponse == "raw" and transmissionMode == "mixed":
 
+    # TODO: some resultResponse/transmissionMode should be not allowed for certain actinia results
+    #       if specified different via key/value pair -> return 405
