@@ -23,6 +23,7 @@ from actinia_ogc_api_processes_plugin.core.job_status_info import (
     get_actinia_job,
     get_job_status_info
 )
+from job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.core.job_results import get_results
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
@@ -70,6 +71,36 @@ class JobResults(Resource):
                     # res, status_code = get_results(resp, resultResponse, transmissionMode)
                     # return make_response(res, status_code)
                     return get_results(resp, resultResponse, transmissionMode)
+                elif status_info["status"] == "failed":
+                    # If the operation is executed on a failed job using a valid job identifier,
+                    # the response SHALL have a HTTP error code that corresponds to the reason of the failure.
+                    # The content of that response SHALL be based upon the OpenAPI 3.0 schema exception.yaml.
+                    # The type of the exception SHALL correspond to the reason of the failure,
+                    # e.g. InvalidParameterValue for invalid input data.
+                    # TODO: adjust
+                    failure_status_code = "TODO"
+                    res = jsonify(
+                        {
+                            "type": "TODO",
+                            "title": "TODO",
+                            "status": failure_status_code,
+                            "detail": f"Job '{job_id}': TODO",
+                        },
+                    )
+                    return make_response(res, failure_status_code)
+                else:
+                    res = jsonify(
+                        {
+                            "type": (
+                                "http://www.opengis.net/def/exceptions/"
+                                "ogcapi-processes-1/1.0/result-not-ready"
+                            ),
+                            "title": "Result not ready",
+                            "status": 404,
+                            "detail": f"Results of job '{job_id}' not ready",
+                        },
+                    )
+                    return make_response(res, 404)
             if status_code == 401:
                 log.error("ERROR: Unauthorized Access")
                 log.debug(f"actinia response: {getattr(resp, 'text', '')}")
@@ -80,10 +111,10 @@ class JobResults(Resource):
                     ),
                 )
                 return make_response(res, 401)
-            # if status_code in {400, 404}:
-            #     log.error("ERROR: No such job")
-            #     log.debug(f"actinia response: {getattr(resp, 'text', '')}")
-            #     return JobStatusInfo._not_found_response(job_id)
+            if status_code in {400, 404}:
+                 log.error("ERROR: No such job")
+                 log.debug(f"actinia response: {getattr(resp, 'text', '')}")
+                 return JobStatusInfo._not_found_response(job_id)
             # fallback
             log.error("ERROR: Internal Server Error")
             code = getattr(resp, "status_code", status_code)
@@ -106,35 +137,3 @@ class JobResults(Resource):
                 ),
             )
             return make_response(res, 503)
-
-
-    # @staticmethod
-    # def _build_status_info_kwargs(status_info: dict) -> dict:
-    #     """Return kwargs for StatusInfoResponseModel from a status_info dict.
-
-    #     Keeps mapping logic in one place for `get` and `delete` methods.
-    #     """
-    #     model_kwargs = {}
-    #     props = StatusInfoResponseModel.properties
-    #     for k in props:
-    #         if k in status_info:
-    #             model_kwargs[k] = status_info[k]
-
-    #     return model_kwargs
-
-    # @staticmethod
-    # def _not_found_response(job_id: str) -> tuple:
-    #     """Return a standardized 404 OGC exception response for a job."""
-    #     res = jsonify(
-    #         {
-    #             "type": (
-    #                 "http://www.opengis.net/def/exceptions/"
-    #                 "ogcapi-processes-1/1.0/no-such-job"
-    #             ),
-    #             "title": "No Such Job",
-    #             "status": 404,
-    #             "detail": f"Job '{job_id}' not found",
-    #         },
-    #     )
-    #     return make_response(res, 404)
-
