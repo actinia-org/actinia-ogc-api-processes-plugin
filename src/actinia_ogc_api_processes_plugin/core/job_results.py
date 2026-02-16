@@ -11,7 +11,10 @@ __author__ = "Lina Krisztian"
 __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
-from flask import jsonify
+from flask import jsonify, make_response, redirect
+
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 def format_to_prefix(type, format):
     """
@@ -81,6 +84,34 @@ def format_to_mimetype(type, format):
 
     return mimetype
 
+def mimetype_to_multipart_format(mimetype):
+    if mimetype == "application/zip" or mimetype == "application/x-tar+gzip":
+        from email.mime.application import MIMEApplication
+        # application/zip
+        with open("example.zip", "rb") as zip_file:
+            part = MIMEApplication(zip_file.read(), _subtype="zip")
+            part.add_header("Content-Disposition", "attachment", filename="example.zip")
+        # application/x-tar+gzip
+        with open("archive.tar.gz", "rb") as tar_gz_file:
+            part = MIMEApplication(tar_gz_file.read(), _subtype="x-tar+gzip")
+            part.add_header("Content-Disposition", "attachment", filename="archive.tar.gz")
+
+    if mimetype == "image/tiff":
+        from email.mime.image import MIMEImage
+        # image/tiff
+        with open("image.tiff", "rb") as tiff_file:
+            part = MIMEImage(tiff_file.read(), _subtype="tiff")
+            part.add_header("Content-Disposition", "attachment", filename="image.tiff")
+
+    if mimetype == "application/pdf":
+        from email.mime.application import MIMEApplication
+        # application/pdf
+        with open("document.pdf", "rb") as pdf_file:
+            part = MIMEApplication(pdf_file.read(), _subtype="pdf")
+            part.add_header("Content-Disposition", "attachment", filename="document.pdf")
+
+    return part
+
 def extract_export(pc_el_inout_entry, pc_el_id, resources):
     """
     This function retrieves the exported filename from the provided process chain
@@ -146,6 +177,7 @@ def get_results(
 
     # -- Filter results from actinia
     # Exported results
+    export_out_dict = None
     for pc_el in data["process_chain_list"][0]["list"]:
         if "inputs" in pc_el:
             for pc_inp_el in pc_el["inputs"]:
@@ -170,30 +202,143 @@ def get_results(
                 stdout_dict[stdout_id] = pc_log_el["stdout"]
     result_format.update(stdout_dict)
 
+    if not result_format:
+        # TODO: 405 or empty return?
+        return make_response("No results returned for current job", 405)
+
+    # NOTE: current dict key combination of pc_el_id etc. -> better if defined output from processing?
+    #       (would required valkey db o.ä.?)
+
     # -- Return results dependent on key-value of response and transmissionMode
 
-    # TODO: set reasonable default values
+    # TODO: how to substitute localhost -> relevant for all reference links
+    #       actinia core resource in logs?
+
+    # 7.11.4.  Response
+    # Table 11
+    # This table shows all possible combinations of execute parameters that are specified by this standard.
+    # Not all of these combinations need to be implemented by a server conforming to this standard.
+    # For example, if a server only offers processes that support multiple outputs by value,
+    # then the server must support multipart/related responses as indicated in Table 11.
+    # If, on the other hand, the server only offers processes that support multiple outputs by reference,
+    # then the server does not need to support multipart/related responses.
+    # -> for actinia: choose supported combinations different for exported and stdout results
+
+    # default values, if not explicitely given
     if not resultResponse:
-        resultResponse = "document"
+        # 7.11.2.4.  Response type -> "The default value, if the parameter is not specified is raw."
+        resultResponse = "raw"
     if not transmissionMode:
-        transmissionMode = "reference"
+        transmissionMode = "mixed" # -> mixed? -> see below
+    # NOTE/TODO:
+    # according to standard:
+    # * response -> for complete request (not per output)
+    #   * possible: document or raw
+    # * transmissionmode -> per output
+    #   * possible: value or reference (NOT: mixed)
+    # transmissionmode = mixed => mutliple outputs with different transmission modes requested
+    # BUT: with key-value as it is configured now -= transmissionmode not per output defined
+    #      instead: give/add "mixed" explicitely as transmissionmode?
+    #      OR: must define for each output via key value???
 
+
+    # default status_code for most returns
     status_code = 200
-    if resultResponse == "document" and transmissionMode == "reference":
-        return jsonify(result_format), status_code
-    elif resultResponse == "document" and transmissionMode == "value":
-        return jsonify(result_format), status_code
-    # elif resultResponse == "document" and transmissionMode == "mixed":
-        # allowed?
-    elif resultResponse == "raw" and transmissionMode == "reference":
-        status_code = 204
-        return jsonify(result_format), status_code
-        # direkt match_Resouce_url zurück geben
-        # stdout nicht als reference, nur value
-    # elif resultResponse == "raw" and transmissionMode == "value":
-        # request auf resource_url? (redirect mit zurückgebbar)
-        # z.B: mit from flask import redirect
-    # elif resultResponse == "raw" and transmissionMode == "mixed":
 
-    # TODO: some resultResponse/transmissionMode should be not allowed for certain actinia results
-    #       if specified different via key/value pair -> return 405
+    if resultResponse == "document":
+        # Note: for document the transmissionMode must not be filtered
+        #       the correct formatting is already given by the results
+        #       e.g. a tif can not be returned as raw binary in a json,
+        #       so reference is used. If value desired, then it would need to be
+        #       directly returned as e.g. base64 encoded (so already value)
+        return make_response(jsonify(result_format), status_code)
+
+    elif resultResponse == "raw" and transmissionMode == "reference":
+        # stdout result not supported as reference
+        if stdout_dict and not export_out_dict:
+            return make_response(
+                ("Format resultResponse=raw and transmissionMode=reference "
+                "not allowed for current job results. "
+                "Use e.g. transmissionMode=value"),
+                405,
+            )
+        if stdout_dict and export_out_dict:
+            return make_response(
+                ("Format resultResponse=raw and transmissionMode=reference "
+                "not allowed for current job results. "
+                "Use e.g. transmissionMode=mixed"),
+                405,
+            )
+
+        status_code = 204
+        if not stdout_dict and export_out_dict:
+            response = make_response("", status_code)
+            # format Link header, see e.g. here https://greenbytes.de/tech/webdav/rfc8288.html
+            links_list =[]
+            for key, value in result_format.items():
+                if "href" in value:
+                    # TODO/NOTE: braucht links ein 'rel' type?
+                    # wenn ja welcher passt dann? (kein passenden gefunden unter 5.2)
+                    # TODO: format so korrekt? richtig "manuell" zu machen?
+                    links_list.append(f"<{value['href']}>")
+            response.headers["Link"] = ", ".join(links_list)
+            return response
+
+    elif resultResponse == "raw" and transmissionMode == "value":
+        # single result
+        if len(result_format) == 1:
+            value = next(iter(result_format.values()))
+            if "href" in value:
+                # flask.redirect
+                return redirect(value["href"])
+                # NOTE: damit -> currently full doctype html
+                #       + status_code of redirect not 200 (303?)
+                # alternative?: (nicht mit localhost)
+                # import requests
+                # return requests.get(value["href"])
+            else:
+                return make_response(value, status_code)
+
+        # multiple results
+        multipart_message = MIMEMultipart("related")
+        if export_out_dict:
+            for key, value in result_format.items():
+                if "href" in value:
+                    # Add as a related part with Content-Type
+                    # TODO: wirklich value für ref links?
+                    # siehe mimetype_to_multipart_format -> dann alle daten lesen
+                    # gewünscht?
+                    # wenn ja -> funktion finalisieren
+                    # wenn nein -> bei #out > 1 + export_out_dict -> 405, und mixed empfehlen?
+                    part = mimetype_to_multipart_format(value["type"])
+                    multipart_message.attach(part)
+        if stdout_dict:
+            for stdout_id, stdout_content in stdout_dict.items():
+                part = MIMEText(stdout_content, "plain")
+                part.add_header("Content-ID", f"<{stdout_id}>")
+                multipart_message.attach(part)
+        response = make_response(multipart_message.as_string(), status_code)
+        response.headers["Content-Type"] = "multipart/related"
+        return response
+
+    elif resultResponse == "raw" and transmissionMode == "mixed":
+        multipart_message = MIMEMultipart("related")
+        if export_out_dict:
+            for key, value in result_format.items():
+                if "href" in value:
+                    # Erstelle eine MIMEMessage für einen externen Link
+                    # base_message = Message()
+                    from email.mime.base import MIMEBase
+                    reference_part = MIMEBase("message", "external-body")
+                    reference_part.add_header("Content-ID", key)
+                    reference_part.add_header("Content-Location", value["href"])
+                    reference_part.set_payload("This is a reference to an external resource.")
+                    multipart_message.attach(reference_part)
+        if stdout_dict:
+            for stdout_id, stdout_content in stdout_dict.items():
+                part = MIMEText(stdout_content, "plain")
+                part.add_header("Content-ID", f"<{stdout_id}>")
+                multipart_message.attach(part)
+        response = make_response(multipart_message.as_string(), status_code)
+        response.headers["Content-Type"] = "multipart/related"
+        return response

@@ -67,10 +67,9 @@ class JobResults(Resource):
             status_code, status_info, resp = get_job_status_info(job_id)
             if status_code == 200:
                 if status_info["status"] == "successful":
-                    res, status_code = get_results(resp, resultResponse, transmissionMode)
-                    # TODO: mit "raw" and transmissionMode == "reference" -> soll status_code=204
-                    #       dann liefert make_response aber "no content"
-                    return make_response(res, status_code)
+                    # res, status_code = get_results(resp, resultResponse, transmissionMode)
+                    # return make_response(res, status_code)
+                    return get_results(resp, resultResponse, transmissionMode)
             if status_code == 401:
                 log.error("ERROR: Unauthorized Access")
                 log.debug(f"actinia response: {getattr(resp, 'text', '')}")
