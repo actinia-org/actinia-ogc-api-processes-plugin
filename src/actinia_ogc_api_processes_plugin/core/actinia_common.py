@@ -115,6 +115,14 @@ def calculate_finished(data: dict):
     return finished_dt.replace(microsecond=0).isoformat()
 
 
+def parse_actinia_job_id(data):
+    """Parse actinia job response json to extract job_id."""
+    job_id = data.get("resource_id")
+    if job_id and job_id.startswith("resource_id-"):
+        job_id = job_id.removeprefix("resource_id-")
+    return job_id
+
+
 def parse_actinia_job(job_id, data):
     """Parse actinia job response json into status_info dict."""
     status_info = {}
@@ -176,3 +184,23 @@ def parse_actinia_job(job_id, data):
     status_info["links"] = links
 
     return status_info
+
+
+def safe_parse_actinia_job(data):
+    """Return (job_id, status_info) or (None, None) for invalid items."""
+    if not isinstance(data, dict):
+        return None, None
+    job_id = parse_actinia_job_id(data)
+    if not job_id:
+        return None, None
+    try:
+        status_info = parse_actinia_job(job_id, data)
+    except (TypeError, ValueError):
+        status_info = {
+            "jobID": job_id,
+            "type": "process",
+            "processID": data.get("resource_id"),
+            "status": data.get("status"),
+            "links": [],
+        }
+    return job_id, status_info
