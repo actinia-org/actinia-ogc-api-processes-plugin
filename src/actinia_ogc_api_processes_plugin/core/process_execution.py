@@ -33,7 +33,9 @@ def _transform_to_actinia_process_chain(
     """Transform execute postbody to actinia process chain format."""
     inputs = execute_request.get("inputs", [])
     inputs_array = [
-        {"param": key, "value": value} for key, value in inputs.items()
+        {"param": key, "value": value}
+        for key, value in inputs.items()
+        if key != "project"
     ]
 
     return {
@@ -59,21 +61,8 @@ def post_process_execution(
     kwargs["auth"] = HTTPBasicAuth(auth.username, auth.password)
 
     project_name = ACTINIA.default_project
-    resp = requests.get(
-        f"{ACTINIA.processing_base_url}/actinia_modules/{process_id}",
-        **kwargs,
-    )
-    if resp.status_code != 200:
-        return resp
-
-    # TODO: Do we stick to the convention introduced in
-    # https://github.com/actinia-org/actinia-module-plugin/pull/64
-    # that the project name must be set in the template?
-    # Or do we add it as a parameter in the process description?
-    # If in template, a string would make more sense instead of listing
-    # all projects which with the module was tested.
-    if len(resp.json().get("projects")) > 1:
-        project_name = resp.json().get("projects")[0]
+    if postbody.get("inputs").get("project"):
+        project_name = postbody.get("inputs").get("project")
 
     pc = _transform_to_actinia_process_chain(process_id, postbody)
     kwargs["json"] = pc
