@@ -60,6 +60,14 @@ def post_process_execution(
     kwargs = dict()
     kwargs["auth"] = HTTPBasicAuth(auth.username, auth.password)
 
+    # Check if process exists in actinia
+    resp = requests.get(
+        f"{ACTINIA.processing_base_url}/actinia_modules/{process_id}",
+        **kwargs,
+    )
+    if resp.status_code != 200:
+        return resp
+
     project_name = ACTINIA.default_project
     if postbody.get("inputs").get("project"):
         project_name = postbody.get("inputs").get("project")

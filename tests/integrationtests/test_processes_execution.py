@@ -47,6 +47,25 @@ class ProcessExecution(TestCase):
         assert hasattr(resp, "json")
         assert "message" in resp.json
         assert resp.json["message"] == "Resource accepted"
+        # response should follow StatusInfoResponseModel:
+        # contain jobID, status and links
+        assert isinstance(resp.json, dict)
+        assert "jobID" in resp.json
+        assert "status" in resp.json
+        assert resp.json["status"] in {
+            "accepted",
+            "running",
+            "successful",
+            "failed",
+            "dismissed",
+        }
+        assert "links" in resp.json
+        assert isinstance(resp.json["links"], list)
+        # link should point to job status resource
+        if resp.json["links"]:
+            assert any(
+                "/jobs/" in link.get("href", "") for link in resp.json["links"]
+            )
 
     @pytest.mark.integrationtest
     def test_post_process_execution_invalid_process_id(self) -> None:
@@ -82,8 +101,10 @@ class ProcessExecution(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 401
         assert hasattr(resp, "json")
-        assert "message" in resp.json
-        assert resp.json["message"] == "ERROR: Unauthorized Access"
+        # simple status response: check status code and message presence
+        assert resp.json.get("status") == 401 or "Unauthorized" in str(
+            resp.json.get("message", ""),
+        )
 
     @pytest.mark.integrationtest
     def test_post_process_execution_missing_auth(self) -> None:
@@ -98,5 +119,7 @@ class ProcessExecution(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 401
         assert hasattr(resp, "json")
-        assert "message" in resp.json
-        assert resp.json["message"] == "Authentication required"
+        # simple status response: check status code and message presence
+        assert resp.json.get("status") == 401 or "Authentication" in str(
+            resp.json.get("message", ""),
+        )
