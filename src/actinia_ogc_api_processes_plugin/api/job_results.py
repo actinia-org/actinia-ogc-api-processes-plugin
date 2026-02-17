@@ -23,7 +23,7 @@ from actinia_ogc_api_processes_plugin.core.job_status_info import (
     get_actinia_job,
     get_job_status_info
 )
-from job_status_info import JobStatusInfo
+# from job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.core.job_results import get_results
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
@@ -111,10 +111,10 @@ class JobResults(Resource):
                     ),
                 )
                 return make_response(res, 401)
-            if status_code in {400, 404}:
-                 log.error("ERROR: No such job")
-                 log.debug(f"actinia response: {getattr(resp, 'text', '')}")
-                 return JobStatusInfo._not_found_response(job_id)
+            # if status_code in {400, 404}:
+            #      log.error("ERROR: No such job")
+            #      log.debug(f"actinia response: {getattr(resp, 'text', '')}")
+            #      return JobStatusInfo._not_found_response(job_id)
             # fallback
             log.error("ERROR: Internal Server Error")
             code = getattr(resp, "status_code", status_code)

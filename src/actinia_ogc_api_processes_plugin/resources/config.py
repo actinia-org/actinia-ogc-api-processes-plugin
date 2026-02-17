@@ -72,6 +72,13 @@ class Configfile:
                     "ACTINIA",
                     "processing_base_url",
                 )
+            if config.has_option("ACTINIA", "user_actinia_base_url"):
+                # This is the URL that will be used in the OGC API Processes responses,
+                # it should be accessible from the clients that will consume the API
+                 ACTINIA.user_actinia_base_url = config.get(
+                    "ACTINIA",
+                    "user_actinia_base_url",
+                )
             if config.has_option("ACTINIA", "use_actinia_modules"):
                 ACTINIA.use_actinia_modules = config.getboolean(
                     "ACTINIA",
