@@ -23,7 +23,7 @@ from actinia_ogc_api_processes_plugin.core.job_status_info import (
     get_actinia_job,
     get_job_status_info
 )
-# from job_status_info import JobStatusInfo
+from actinia_ogc_api_processes_plugin.api.job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.core.job_results import get_results
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
@@ -72,19 +72,15 @@ class JobResults(Resource):
                     # return make_response(res, status_code)
                     return get_results(resp, resultResponse, transmissionMode)
                 elif status_info["status"] == "failed":
-                    # If the operation is executed on a failed job using a valid job identifier,
-                    # the response SHALL have a HTTP error code that corresponds to the reason of the failure.
-                    # The content of that response SHALL be based upon the OpenAPI 3.0 schema exception.yaml.
-                    # The type of the exception SHALL correspond to the reason of the failure,
-                    # e.g. InvalidParameterValue for invalid input data.
-                    # TODO: adjust
-                    failure_status_code = "TODO"
+                    failure_status_code = 400 # return code from actinia, see also get_job_status_info() from core.job_status_info
                     res = jsonify(
                         {
-                            "type": "TODO",
-                            "title": "TODO",
+                            "type": "AsyncProcessError", # todo: use valid type following OpenAPI 3.0 schema exception.yaml (RFC7807)
+                            "title": "Job failed",
                             "status": failure_status_code,
-                            "detail": f"Job '{job_id}': TODO",
+                            "detail": f"Job '{job_id}' failed: {status_info["message"]}",
+                            # "instance": TODO -> full actinia log url -> see also todo within core.job_results.get_results()
+                            #                     here or/and within job_status_info?
                         },
                     )
                     return make_response(res, failure_status_code)
@@ -111,10 +107,10 @@ class JobResults(Resource):
                     ),
                 )
                 return make_response(res, 401)
-            # if status_code in {400, 404}:
-            #      log.error("ERROR: No such job")
-            #      log.debug(f"actinia response: {getattr(resp, 'text', '')}")
-            #      return JobStatusInfo._not_found_response(job_id)
+            if status_code in {400, 404}:
+                 log.error("ERROR: No such job")
+                 log.debug(f"actinia response: {getattr(resp, 'text', '')}")
+                 return JobStatusInfo._not_found_response(job_id)
             # fallback
             log.error("ERROR: Internal Server Error")
             code = getattr(resp, "status_code", status_code)

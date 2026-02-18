@@ -11,7 +11,9 @@ __author__ = "Lina Krisztian"
 __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
-from flask import jsonify, make_response, redirect
+from flask import jsonify, make_response, request
+import requests
+from requests.auth import HTTPBasicAuth
 
 import json
 import re
@@ -142,15 +144,16 @@ def extract_export(pc_el_inout_entry, pc_el_id, resources):
         export_out_dict[export_out_dict_key] = {
             "href": resource_url,
             "type": export_mimetype
-            # "rel": -> NOTE: wenn es passenden type gibt
+            # "rel": -> NOTE: can be added when a fitting rel type found
             }
 
     return export_out_dict
     
-def stdout_to_multipart(stdout_dict):
+def stdout_to_multipart(stdout_dict, multipart_message):
     for stdout_id, stdout_content in stdout_dict.items():
         # for different return types from actinia dependent on format, see here:
         # https://github.com/actinia-org/actinia-processing-lib/blob/main/src/actinia_processing_lib/ephemeral_processing.py#L2086-L2125
+        # either dict or list
         if type(stdout_content) is dict:
             part = MIMEText(json.dumps(stdout_content), "json")
         else:
@@ -159,7 +162,7 @@ def stdout_to_multipart(stdout_dict):
             table = "\n".join(",".join(map(str, row)) for row in data)
             part = MIMEText(table, "plain")
         part.add_header("Content-ID", stdout_id)
-    return part
+        multipart_message.attach(part)
 
 def get_results(
         resp,
@@ -285,15 +288,12 @@ def get_results(
         if len(result_format) == 1:
             value = next(iter(result_format.values()))
             if "href" in value:
-                # flask.redirect
-                #return redirect(value["href"])
-                # NOTE: damit -> currently full doctype html
-                #       + status_code of redirect not 200 (303?)
-                # TODO: wenn 303 -> dann doch mit requests
-                #       testen mit tif (1GB)-> laufzeit, timeout??
-                # alternative?: (nicht mit localhost)
-                import requests
-                return requests.get(value["href"])
+                auth = request.authorization
+                kwargs = dict()
+                if auth:
+                    kwargs["auth"] = HTTPBasicAuth(auth.username, auth.password)
+                url = re.sub(r'https?://[^/]+/api/v\d+',ACTINIA.processing_base_url,value["href"])
+                return make_response(requests.get(url, **kwargs).content, status_code)
             else:
                 return make_response(value, status_code)
 
@@ -325,7 +325,7 @@ def get_results(
         # fallback: only stdout
         multipart_message = MIMEMultipart("related")
         if stdout_dict:
-            multipart_message.attach(stdout_to_multipart(stdout_dict))
+            stdout_to_multipart(stdout_dict, multipart_message)
 
         response = make_response(multipart_message.as_string(), status_code)
         response.headers["Content-Type"] = "multipart/related"
@@ -342,7 +342,7 @@ def get_results(
                     reference_part.set_payload("This is a reference to an external resource.")
                     multipart_message.attach(reference_part)
         if stdout_dict:
-            multipart_message.attach(stdout_to_multipart(stdout_dict))
+            stdout_to_multipart(stdout_dict, multipart_message)
 
         response = make_response(multipart_message.as_string(), status_code)
         response.headers["Content-Type"] = "multipart/related"
