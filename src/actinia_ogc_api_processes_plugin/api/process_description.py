@@ -19,6 +19,7 @@ from actinia_ogc_api_processes_plugin.apidocs import process_description
 from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
 from actinia_ogc_api_processes_plugin.core.process_description import (
     get_module_description,
+    update_resp,
 )
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
@@ -43,7 +44,8 @@ class ProcessDescription(Resource):
         try:
             resp = get_module_description(process_id)
             if resp.status_code == 200:
-                return make_response(jsonify(resp.json()), 200)
+                updated_resp = update_resp(resp.json())
+                return make_response(jsonify(updated_resp), 200)
             elif resp.status_code == 401:
                 log.error("ERROR: Unauthorized Access")
                 log.debug(f"actinia response: {resp.text}")

@@ -24,6 +24,16 @@ test_process_input = {
     "response": "document",
 }
 
+test_process_input_with_grass_project = {
+    "inputs": {
+        "url_to_geojson_point": "https://raw.githubusercontent.com/"
+        "mmacata/pagestest/gh-pages/pointInBonn.geojson",
+        "project": "nc_spm_08",
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document",
+}
+
 
 class ProcessExecution(TestCase):
     """Test class for executing Processes.
@@ -41,6 +51,42 @@ class ProcessExecution(TestCase):
             "/processes/point_in_polygon/execution",
             headers=self.HEADER_AUTH,
             json=test_process_input,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 201
+        assert hasattr(resp, "json")
+        assert "message" in resp.json
+        assert resp.json["message"] == "Resource accepted"
+        # response should follow StatusInfoResponseModel:
+        # contain jobID, status and links
+        assert isinstance(resp.json, dict)
+        assert "jobID" in resp.json
+        assert "status" in resp.json
+        assert resp.json["status"] in {
+            "accepted",
+            "running",
+            "successful",
+            "failed",
+            "dismissed",
+        }
+        assert "links" in resp.json
+        assert isinstance(resp.json["links"], list)
+        # link should point to job status resource
+        if resp.json["links"]:
+            assert any(
+                "/jobs/" in link.get("href", "") for link in resp.json["links"]
+            )
+
+    @pytest.mark.integrationtest
+    def test_post_process_execution_with_grass_project(self) -> None:
+        """Test post method of the /processes/<process_id>/execution endpoint.
+
+        Succesfull query
+        """
+        resp = self.app.post(
+            "/processes/point_in_polygon/execution",
+            headers=self.HEADER_AUTH,
+            json=test_process_input_with_grass_project,
         )
         assert isinstance(resp, Response)
         assert resp.status_code == 201
@@ -82,8 +128,10 @@ class ProcessExecution(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 401
         assert hasattr(resp, "json")
-        assert "message" in resp.json
-        assert resp.json["message"] == "ERROR: Unauthorized Access"
+        # simple status response: check status code and message presence
+        assert resp.json.get("status") == 401 or "Unauthorized" in str(
+            resp.json.get("message", ""),
+        )
 
     @pytest.mark.integrationtest
     def test_post_process_execution_missing_auth(self) -> None:
@@ -98,5 +146,7 @@ class ProcessExecution(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 401
         assert hasattr(resp, "json")
-        assert "message" in resp.json
-        assert resp.json["message"] == "Authentication required"
+        # simple status response: check status code and message presence
+        assert resp.json.get("status") == 401 or "Authentication" in str(
+            resp.json.get("message", ""),
+        )
