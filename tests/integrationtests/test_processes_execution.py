@@ -24,6 +24,16 @@ test_process_input = {
     "response": "document",
 }
 
+test_process_input_with_grass_project = {
+    "inputs": {
+        "url_to_geojson_point": "https://raw.githubusercontent.com/"
+        "mmacata/pagestest/gh-pages/pointInBonn.geojson",
+        "project": "nc_spm_08",
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document",
+}
+
 
 class ProcessExecution(TestCase):
     """Test class for executing Processes.
@@ -66,6 +76,23 @@ class ProcessExecution(TestCase):
             assert any(
                 "/jobs/" in link.get("href", "") for link in resp.json["links"]
             )
+
+    @pytest.mark.integrationtest
+    def test_post_process_execution_with_grass_project(self) -> None:
+        """Test post method of the /processes/<process_id>/execution endpoint.
+
+        Succesfull query
+        """
+        resp = self.app.post(
+            "/processes/point_in_polygon/execution",
+            headers=self.HEADER_AUTH,
+            json=test_process_input_with_grass_project,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 201
+        assert hasattr(resp, "json")
+        assert "message" in resp.json
+        assert resp.json["message"] == "Resource accepted"
 
     @pytest.mark.integrationtest
     def test_post_process_execution_invalid_process_id(self) -> None:
