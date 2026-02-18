@@ -39,7 +39,9 @@ describe_job_result_get_docs = {
             "description": "This response returns the jobs results.",
         },
         "204": {
-            "description": "This response returns the jobs results (raw + reference).",
+            "description": (
+                "This response returns the jobs results (raw + reference)."
+            ),
         },
         "400": {
             "description": "Client error",

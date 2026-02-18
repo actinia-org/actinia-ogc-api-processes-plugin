@@ -19,15 +19,12 @@ from requests.exceptions import ConnectionError as req_ConnectionError
 
 from actinia_ogc_api_processes_plugin.apidocs import job_results
 from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
-from actinia_ogc_api_processes_plugin.core.job_status_info import (
-    get_actinia_job,
-    get_job_status_info
-)
-from actinia_ogc_api_processes_plugin.api.job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.core.job_results import get_results
+from actinia_ogc_api_processes_plugin.core.job_status_info import (
+    get_job_status_info,
+)
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
-    StatusInfoResponseModel,
 )
 from actinia_ogc_api_processes_plugin.resources.logging import log
 
@@ -45,22 +42,32 @@ class JobResults(Resource):
         """Return job results for a given job id."""
         try:
             # read optional resultResponse parameter
-            resultResponse = request.args.get("resultResponse") or None
-            if resultResponse and (resultResponse != "raw" and resultResponse != "document"):
+            result_response = request.args.get("resultResponse") or None
+            if result_response and (
+                result_response not in {"raw", "document"}
+            ):
                 res = jsonify(
                     SimpleStatusCodeResponseModel(
                         status=400,
-                        message="ERROR: resultResponse must be 'raw' or 'document'",
+                        message=(
+                            "ERROR: resultResponse must be "
+                            "'raw' or 'document'"
+                        ),
                     ),
                 )
                 return make_response(res, 400)
             # read optional transmissionMode parameter
-            transmissionMode = request.args.get("transmissionMode") or None
-            if transmissionMode and (transmissionMode != "value" and transmissionMode != "reference" and transmissionMode != "mixed"):
+            transmission_mode = request.args.get("transmissionMode") or None
+            if transmission_mode and (
+                transmission_mode not in {"value", "reference", "mixed"}
+            ):
                 res = jsonify(
-                                SimpleStatusCodeResponseModel(
+                    SimpleStatusCodeResponseModel(
                         status=400,
-                        message="ERROR: transmissionMode must be 'value', 'reference' or 'mixed'",
+                        message=(
+                            "ERROR: transmissionMode must be "
+                            "'value', 'reference' or 'mixed'"
+                        ),
                     ),
                 )
                 return make_response(res, 400)
@@ -68,19 +75,30 @@ class JobResults(Resource):
             status_code, status_info, resp = get_job_status_info(job_id)
             if status_code == 200:
                 if status_info["status"] == "successful":
-                    # res, status_code = get_results(resp, resultResponse, transmissionMode)
-                    # return make_response(res, status_code)
-                    return get_results(resp, resultResponse, transmissionMode)
+                    return get_results(
+                        resp,
+                        result_response,
+                        transmission_mode,
+                    )
                 elif status_info["status"] == "failed":
-                    failure_status_code = 400 # return code from actinia, see also get_job_status_info() from core.job_status_info
+                    # return code from actinia,
+                    # see also get_job_status_info() from core.job_status_info
+                    failure_status_code = 400
+                    # todo: use valid 'type' following
+                    # OpenAPI 3.0 schema exception.yaml (RFC7807)
                     res = jsonify(
                         {
-                            "type": "AsyncProcessError", # todo: use valid type following OpenAPI 3.0 schema exception.yaml (RFC7807)
+                            "type": "AsyncProcessError",
                             "title": "Job failed",
                             "status": failure_status_code,
-                            "detail": f"Job '{job_id}' failed: {status_info["message"]}",
-                            # "instance": TODO -> full actinia log url -> see also todo within core.job_results.get_results()
-                            #                     here or/and within job_status_info?
+                            "detail": (
+                                f"Job '{job_id}' failed: "
+                                f"{status_info['message']}"
+                            ),
+                            # "instance":
+                            # TODO -> full actinia log url
+                            # see also within core.job_results.get_results()
+                            # here or/and within job_status_info?
                         },
                     )
                     return make_response(res, failure_status_code)
@@ -108,9 +126,20 @@ class JobResults(Resource):
                 )
                 return make_response(res, 401)
             if status_code in {400, 404}:
-                 log.error("ERROR: No such job")
-                 log.debug(f"actinia response: {getattr(resp, 'text', '')}")
-                 return JobStatusInfo._not_found_response(job_id)
+                log.error("ERROR: No such job")
+                log.debug(f"actinia response: {getattr(resp, 'text', '')}")
+                res = jsonify(
+                    {
+                        "type": (
+                            "http://www.opengis.net/def/exceptions/"
+                            "ogcapi-processes-1/1.0/no-such-job"
+                        ),
+                        "title": "No Such Job",
+                        "status": 404,
+                        "detail": f"Job '{job_id}' not found",
+                    },
+                )
+                return make_response(res, 404)
             # fallback
             log.error("ERROR: Internal Server Error")
             code = getattr(resp, "status_code", status_code)
