@@ -32,6 +32,6 @@ class Conformance(Resource):
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/job-list",
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/dismiss",
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/json",
-            ]
+            ],
         }
         return make_response(jsonify(conforms), 200)
