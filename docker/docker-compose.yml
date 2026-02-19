@@ -10,8 +10,8 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     # -- For dev-setup and/or tests mount plugin src code:
-    # volumes:
-    #  - ..:/src/actinia-ogc-api-processes-plugin/.
+    volumes:
+     - ..:/src/actinia-ogc-api-processes-plugin/.
     cap_add:
       - SYS_PTRACE
     ports:
@@ -26,18 +26,22 @@ services:
 
   actinia-core:
     image: mundialis/actinia:2.13.1
+    volumes:
+      - ./actinia-data/resources:/actinia_core/resources
+
     # ports:
     #  - "8088:8088"
     depends_on:
       - valkey
 
   valkey:
-    # volumes:
-    #   - ./valkey_data:/data
+    volumes:
+      - ./valkey_data:/data
     image: valkey/valkey:9.0-alpine
     command: [
       "sh",
       "-c",
       'docker-entrypoint.sh
+      "/data/config/valkey.conf"
       --requirepass pass'
     ]
