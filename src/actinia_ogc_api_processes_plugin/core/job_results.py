@@ -314,27 +314,27 @@ def get_results(
         if stdout_dict and not export_out_dict:
             res = jsonify(
                 SimpleStatusCodeResponseModel(
-                    status=405,
+                    status=422,
                     message=(
                         "Format resultResponse=raw and "
-                        "transmissionMode=reference not allowed for current "
+                        "transmissionMode=reference not supported for current "
                         "job results. Use e.g. transmissionMode=value."
                     ),
                 ),
             )
-            return make_response(res, 405)
+            return make_response(res, 422)
         if stdout_dict and export_out_dict:
             res = jsonify(
                 SimpleStatusCodeResponseModel(
-                    status=405,
+                    status=422,
                     message=(
                         "Format resultResponse=raw and "
-                        "transmissionMode=reference not allowed for current "
+                        "transmissionMode=reference not supported for current "
                         "job results. Use e.g. transmissionMode=mixed."
                     ),
                 ),
             )
-            return make_response(res, 405)
+            return make_response(res, 422)
 
         status_code = 204
         if not stdout_dict and export_out_dict:
@@ -380,27 +380,27 @@ def get_results(
         if not stdout_dict and export_out_dict:
             res = jsonify(
                 SimpleStatusCodeResponseModel(
-                    status=405,
+                    status=422,
                     message=(
                         "Format resultResponse=raw and transmissionMode=value "
-                        "not allowed for current job results. "
+                        "not supported for current job results. "
                         "Use e.g. transmissionMode=reference."
                     ),
                 ),
             )
-            return make_response(res, 405)
+            return make_response(res, 422)
         if stdout_dict and export_out_dict:
             res = jsonify(
                 SimpleStatusCodeResponseModel(
-                    status=405,
+                    status=422,
                     message=(
                         "Format resultResponse=raw and transmissionMode=value "
-                        "not allowed for current job results. "
+                        "not supported for current job results. "
                         "Use e.g. transmissionMode=mixed."
                     ),
                 ),
             )
-            return make_response(res, 405)
+            return make_response(res, 422)
         # fallback: only stdout
         multipart_message = MIMEMultipart("related")
         if stdout_dict:
