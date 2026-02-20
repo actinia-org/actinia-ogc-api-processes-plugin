@@ -25,9 +25,10 @@ services:
 
 
   actinia-core:
-    image: mundialis/actinia:2.13.1
+    image: mundialis/actinia:2.14.0
     volumes:
       - ./actinia-data/resources:/actinia_core/resources
+
 
     # ports:
     #  - "8088:8088"

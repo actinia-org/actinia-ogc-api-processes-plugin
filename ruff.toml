@@ -11,11 +11,12 @@
 # PLR6301 Method could be a function, class method, or static method
 # PLW0603 (checks for use of) global-statement
 # RET505 [*] Unnecessary `elif`/'else' after `return` statement
+# RUF067 `__init__` module should only contain docstrings and re-exports
 # S107 hardcoded-password-default
 # S113 Probable use of `requests` call without timeout
 # S606 start-process-with-no-shell
 
-lint.ignore = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "FA102", "PLR0913", "PLR0917", "PLR2004", "PLR6301", "PLW0603", "RET505", "S107", "S113", "S606"]
+lint.ignore = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "FA102", "PLR0913", "PLR0917", "PLR2004", "PLR6301", "PLW0603", "RET505", "RUF067", "S107", "S113", "S606"]
 
 [lint.per-file-ignores]
 "tests/testsuite.py" = [ "PLC0415",]

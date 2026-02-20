@@ -40,3 +40,23 @@ def get_module_description(process_id):
         url_module_description,
         **kwargs,
     )
+
+
+def update_resp(resp_json: dict) -> dict:
+    """Append GRASS GIS project to input description and jobControlOptions."""
+    project_input = {
+        "description": "Name of GRASS GIS project to use",
+        "name": "project",
+        "optional": False,
+        "schema": {"type": "string"},
+        "default": ACTINIA.default_project,
+    }
+
+    resp_json["parameters"].append(project_input)
+
+    # currently only asynchronous processing is supported
+    resp_json["jobControlOptions"] = [
+        "async-execute",
+    ]
+
+    return resp_json
