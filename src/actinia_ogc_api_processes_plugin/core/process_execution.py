@@ -12,8 +12,6 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
-import json
-
 import requests
 from flask import has_request_context, jsonify, make_response, request
 from requests.auth import HTTPBasicAuth
@@ -143,13 +141,13 @@ def post_process_execution(
     pc = _transform_to_actinia_process_chain(process_id, postbody)
 
     # adjust pc if process is grass module
-    module_info = json.loads(resp.text)
+    module_info = resp.json()
     if "grass-module" in module_info["categories"]:
         # get GRASS processing type
         process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
         # check if module hast input/map parameter
         has_input = any(
-            param.get("name") in {"input", "map"}
+            param.get("name") in {"input", "map"}       # TODO
             for param in module_info.get("parameters", [])
         )
         if not has_input or process_type not in {"raster", "vector"}:
