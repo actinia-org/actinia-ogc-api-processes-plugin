@@ -24,7 +24,6 @@ class Conformance(Resource):
         """Initialise."""
         self.msg = "Return conformance classes"
 
-    @require_basic_auth()
     def get(self):
         """Return conformance classes for this plugin."""
         conforms = {
