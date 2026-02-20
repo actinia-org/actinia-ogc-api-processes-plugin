@@ -178,7 +178,7 @@ class JobResults(Resource):
                                     status=422,
                                     message=(
                                         "Format resultResponse=raw and "
-                                        "transmissionMode=value not"
+                                        "transmissionMode=value not "
                                         "supported for current job results. "
                                         "Use e.g. transmissionMode=reference."
                                     ),
