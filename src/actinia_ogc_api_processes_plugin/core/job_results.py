@@ -14,16 +14,12 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 import json
 import re
 from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import requests
-from flask import jsonify, make_response, request
+from flask import make_response, request
 from requests.auth import HTTPBasicAuth
 
-from actinia_ogc_api_processes_plugin.model.response_models import (
-    SimpleStatusCodeResponseModel,
-)
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 
 
@@ -163,45 +159,7 @@ def extract_export(pc_el_inout_entry, pc_el_id, resources):
     return export_out_dict
 
 
-def stdout_to_multipart(stdout_dict, multipart_message):
-    """Convert stdout data into MIME message.
-
-    Convert the content of a dictionary containing stdout data into MIME
-    multipart message parts and attach them to the provided multipart message.
-
-    Args:
-        stdout_dict (dict): A dictionary where keys are stdout IDs (str) and
-            values are the corresponding stdout content. The content can either
-            be a dictionary or a list.
-        multipart_message (MIMEMultipart): A MIME multipart message object to
-            which the generated MIME parts will be attached.
-
-    """
-    for stdout_id, stdout_content in stdout_dict.items():
-        # for different return types from actinia dependent on format, see here
-        # https://github.com/actinia-org/actinia-processing-lib/blob/main/
-        #   src/actinia_processing_lib/ephemeral_processing.py#L2086-L2125
-        # either dict or list
-        if type(stdout_content) is dict:
-            part = MIMEText(json.dumps(stdout_content), "json")
-        else:
-            # tables to list for regular and nested lists
-            data = (
-                stdout_content
-                if isinstance(stdout_content[0], list)
-                else [[x] for x in stdout_content]
-            )
-            table = "\n".join(",".join(map(str, row)) for row in data)
-            part = MIMEText(table, "plain")
-        part.add_header("Content-ID", stdout_id)
-        multipart_message.attach(part)
-
-
-def get_results(
-    resp,
-    result_response: str | None = None,
-    transmission_mode: str | None = None,
-):
+def get_results(resp):
     """Return the results of a job execution.
 
     Different return format, dependent on
@@ -265,172 +223,88 @@ def get_results(
     #       Note: check what to return,
     #             depent on transmission_mode/result_response, e.g. not for raw
 
-    # -- Return results dependent on key-value of response and transmissionMode
+    return result_format, stdout_dict, export_out_dict
 
-    # 7.11.4.  Response
-    # Table 11
-    # This table shows all possible combinations of execute parameters
-    # that are specified by this standard. Not all of these combinations need
-    # to be implemented by a server conforming to this standard.
-    # For example, if a server only offers processes that support multiple
-    # outputs by value, then the server must support multipart/related
-    # responses as indicated in Table 11.
-    # If, on the other hand, the server only offers processes that support
-    # multiple outputs by reference, then the server does not need to support
-    # multipart/related responses.
-    # -> for actinia: choose supported combinations different for
-    #    exported and stdout results
 
-    # default values, if not explicitely given
-    if not result_response:
-        # 7.11.2.4.  Response type ->
-        # "The default value, if the parameter is not specified is raw."
-        result_response = "raw"
-    if not transmission_mode:
-        # transmissionMode = mixed
-        # - originally:
-        #   when mutliple outputs with different transmission modes requested
-        # - for actinia:
-        #   automatically given if stdout (value) and
-        #   exported results (reference) returned from
-        # mixed allowed for all actinia results, thus choosen as default
-        transmission_mode = "mixed"
+def export_ref_to_header(result_format, status_code):
+    response = make_response("", status_code)
+    # format Link header, see e.g. here:
+    # https://greenbytes.de/tech/webdav/rfc8288.html
+    # NOTE: if needed can add 'rel' type with semicolon e.g.
+    # Link: <https://example.org/>; rel="start",
+    #       <https://example.org/index>; rel="index"
+    links_list = [
+        f"<{value['href']}>"
+        for value in result_format.values()
+        if "href" in value
+    ]
+    response.headers["Link"] = ", ".join(links_list)
+    return response
 
-    # default status_code for most returns
-    status_code = 200
 
-    if result_response == "document":
-        # Note: for document the transmissionMode must not be filtered
-        #       the correct formatting is already given by the results
-        #       e.g. a tif can not be returned as raw binary in a json,
-        #       so reference is used. If value desired, then it would need to
-        #       be directly returned as e.g. base64 encoded (so already value)
-        #       Especially here for actinia result format already fixed:
-        #       stdout -> value | export -> reference
-        #       thus no need to filter for transmissionMode
-        return make_response(jsonify(result_format), status_code)
+def get_results_raw_value_single_ref(value, status_code):
+    auth = request.authorization
+    kwargs = dict()
+    if auth:
+        kwargs["auth"] = HTTPBasicAuth(
+            auth.username,
+            auth.password,
+        )
+    url = re.sub(
+        r"https?://[^/]+/api/v\d+",
+        ACTINIA.processing_base_url,
+        value["href"],
+    )
+    return make_response(
+        requests.get(url, **kwargs).content,
+        status_code,
+    )
 
-    elif result_response == "raw" and transmission_mode == "reference":
-        # stdout result not supported as reference
-        if stdout_dict and not export_out_dict:
-            res = jsonify(
-                SimpleStatusCodeResponseModel(
-                    status=422,
-                    message=(
-                        "Format resultResponse=raw and "
-                        "transmissionMode=reference not supported for current "
-                        "job results. Use e.g. transmissionMode=value."
-                    ),
-                ),
+
+def export_ref_to_multipart(result_format, multipart_message):
+    for key, value in result_format.items():
+        if "href" in value:
+            reference_part = MIMEBase("message", "external-body")
+            reference_part.add_header("Content-ID", key)
+            reference_part.add_header(
+                "Content-Location",
+                value["href"],
             )
-            return make_response(res, 422)
-        if stdout_dict and export_out_dict:
-            res = jsonify(
-                SimpleStatusCodeResponseModel(
-                    status=422,
-                    message=(
-                        "Format resultResponse=raw and "
-                        "transmissionMode=reference not supported for current "
-                        "job results. Use e.g. transmissionMode=mixed."
-                    ),
-                ),
+            reference_part.set_payload(
+                "This is a reference to an external resource.",
             )
-            return make_response(res, 422)
+            multipart_message.attach(reference_part)
 
-        status_code = 204
-        response = make_response("", status_code)
-        # format Link header, see e.g. here:
-        # https://greenbytes.de/tech/webdav/rfc8288.html
-        # NOTE: if needed can add 'rel' type with semicolon e.g.
-        # Link: <https://example.org/>; rel="start",
-        #       <https://example.org/index>; rel="index"
-        links_list = [
-            f"<{value['href']}>"
-            for value in result_format.values()
-            if "href" in value
-        ]
-        response.headers["Link"] = ", ".join(links_list)
-        return response
 
-    elif result_response == "raw" and transmission_mode == "value":
-        # -- single result
-        if len(result_format) == 1:
-            value = next(iter(result_format.values()))
-            if "href" in value:
-                auth = request.authorization
-                kwargs = dict()
-                if auth:
-                    kwargs["auth"] = HTTPBasicAuth(
-                        auth.username,
-                        auth.password,
-                    )
-                url = re.sub(
-                    r"https?://[^/]+/api/v\d+",
-                    ACTINIA.processing_base_url,
-                    value["href"],
-                )
-                return make_response(
-                    requests.get(url, **kwargs).content,
-                    status_code,
-                )
-            else:
-                return make_response(value, status_code)
+def stdout_to_multipart(stdout_dict, multipart_message):
+    """Convert stdout data into MIME message.
 
-        # -- multiple results
-        if not stdout_dict and export_out_dict:
-            res = jsonify(
-                SimpleStatusCodeResponseModel(
-                    status=422,
-                    message=(
-                        "Format resultResponse=raw and transmissionMode=value "
-                        "not supported for current job results. "
-                        "Use e.g. transmissionMode=reference."
-                    ),
-                ),
+    Convert the content of a dictionary containing stdout data into MIME
+    multipart message parts and attach them to the provided multipart message.
+
+    Args:
+        stdout_dict (dict): A dictionary where keys are stdout IDs (str) and
+            values are the corresponding stdout content. The content can either
+            be a dictionary or a list.
+        multipart_message (MIMEMultipart): A MIME multipart message object to
+            which the generated MIME parts will be attached.
+
+    """
+    for stdout_id, stdout_content in stdout_dict.items():
+        # for different return types from actinia dependent on format, see here
+        # https://github.com/actinia-org/actinia-processing-lib/blob/main/
+        #   src/actinia_processing_lib/ephemeral_processing.py#L2086-L2125
+        # either dict or list
+        if type(stdout_content) is dict:
+            part = MIMEText(json.dumps(stdout_content), "json")
+        else:
+            # tables to list for regular and nested lists
+            data = (
+                stdout_content
+                if isinstance(stdout_content[0], list)
+                else [[x] for x in stdout_content]
             )
-            return make_response(res, 422)
-        if stdout_dict and export_out_dict:
-            res = jsonify(
-                SimpleStatusCodeResponseModel(
-                    status=422,
-                    message=(
-                        "Format resultResponse=raw and transmissionMode=value "
-                        "not supported for current job results. "
-                        "Use e.g. transmissionMode=mixed."
-                    ),
-                ),
-            )
-            return make_response(res, 422)
-        # fallback: only stdout
-        multipart_message = MIMEMultipart("related")
-        if stdout_dict:
-            stdout_to_multipart(stdout_dict, multipart_message)
-
-        response = make_response(multipart_message.as_string(), status_code)
-        response.headers["Content-Type"] = "multipart/related"
-        return response
-
-    elif result_response == "raw" and transmission_mode == "mixed":
-        # Note: mixed is default, and also valid if only export
-        # or only stdout results returned
-        multipart_message = MIMEMultipart("related")
-        if export_out_dict:
-            for key, value in result_format.items():
-                if "href" in value:
-                    reference_part = MIMEBase("message", "external-body")
-                    reference_part.add_header("Content-ID", key)
-                    reference_part.add_header(
-                        "Content-Location",
-                        value["href"],
-                    )
-                    reference_part.set_payload(
-                        "This is a reference to an external resource.",
-                    )
-                    multipart_message.attach(reference_part)
-        if stdout_dict:
-            stdout_to_multipart(stdout_dict, multipart_message)
-
-        response = make_response(multipart_message.as_string(), status_code)
-        response.headers["Content-Type"] = "multipart/related"
-        return response
-    return None
+            table = "\n".join(",".join(map(str, row)) for row in data)
+            part = MIMEText(table, "plain")
+        part.add_header("Content-ID", stdout_id)
+        multipart_message.attach(part)

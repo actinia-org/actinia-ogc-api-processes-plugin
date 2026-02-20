@@ -28,8 +28,6 @@ services:
     image: mundialis/actinia:2.14.0
     volumes:
       - ./actinia-data/resources:/actinia_core/resources
-
-
     # ports:
     #  - "8088:8088"
     depends_on:
