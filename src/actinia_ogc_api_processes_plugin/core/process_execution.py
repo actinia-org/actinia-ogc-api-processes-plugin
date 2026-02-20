@@ -15,9 +15,12 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 import json
 
 import requests
-from flask import has_request_context, jsonify, request
+from flask import has_request_context, jsonify, make_response, request
 from requests.auth import HTTPBasicAuth
 
+from actinia_ogc_api_processes_plugin.model.response_models import (
+    SimpleStatusCodeResponseModel,
+)
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 
 GRASS_MODULE_TYPE = {
@@ -151,15 +154,17 @@ def post_process_execution(
         )
         if not has_input or process_type not in {"raster", "vector"}:
             msg = f"Process execution of <{process_id}> not supported."
-            return (
-                jsonify({"message": msg}),
-                405,
+            res = jsonify(
+                SimpleStatusCodeResponseModel(
+                    status=405,
+                    message=msg,
+                ),
             )
+            return make_response(res, 405)
+
         # adjust PC list
         pc_list = pc["list"]
         process = pc_list[0]
-        # add importer if input by reference
-        # TODO
         # add region setting to pc
         input_map = next(
             param["value"]
