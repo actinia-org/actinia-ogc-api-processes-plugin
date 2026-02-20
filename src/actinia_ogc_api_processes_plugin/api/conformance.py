@@ -26,7 +26,7 @@ class Conformance(Resource):
         """Return conformance classes for this plugin."""
         conforms = {
             "conformsTo": [
-                "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
+                "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/core",
                 (
                     "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/"
                     "job-list"
