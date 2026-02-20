@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 JobResults endpoint implementation.
 """
+
 from __future__ import annotations
 
 __license__ = "GPL-3.0-or-later"
