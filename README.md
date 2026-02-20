@@ -92,6 +92,13 @@ docker exec -t docker-actinia-ogc-api-processes-1 make devtest
 docker compose -f "docker/docker-compose.yml" down
 ```
 
+## Running validator
+The OGC teamengine is included in the dev setup with vscode.
+Open http://localhost:8081/teamengine (ogctest:ogctest), view sessions and "Create a new session"
+with Specification: "OGC API - Processes - 1.0  [ 1.3 ]" and then enter
+http://actinia-gdi:actinia-gdi@actinia-ogc-api-processes:4044 as "Location of the landing page".
+
+
 ## Hint for the development of actinia plugins
 
 ### skip permission check
