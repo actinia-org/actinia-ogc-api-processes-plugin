@@ -14,8 +14,6 @@ __maintainer__ = "mundialis GmbH & Co. KG"
 from flask import jsonify, make_response
 from flask_restful_swagger_2 import Resource
 
-from actinia_ogc_api_processes_plugin.authentication import require_basic_auth
-
 
 class Conformance(Resource):
     """Conformance handling."""
