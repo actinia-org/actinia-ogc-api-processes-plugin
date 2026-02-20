@@ -156,11 +156,11 @@ def post_process_execution(
             msg = f"Process execution of <{process_id}> not supported."
             res = jsonify(
                 SimpleStatusCodeResponseModel(
-                    status=405,
+                    status=400,
                     message=msg,
                 ),
             )
-            return make_response(res, 405)
+            return make_response(res, 400)
 
         # adjust PC list
         pc_list = pc["list"]

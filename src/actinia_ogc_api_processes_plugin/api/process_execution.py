@@ -78,7 +78,7 @@ class ProcessExecution(Resource):
                     },
                 )
                 return make_response(res, 404)
-            elif resp.status_code == 405:
+            elif resp.status_code == 400:
                 log.error("ERROR: The request method is not supported")
                 return resp
             else:
