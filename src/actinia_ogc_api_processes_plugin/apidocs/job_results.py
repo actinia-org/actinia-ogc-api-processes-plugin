@@ -55,6 +55,10 @@ describe_job_result_get_docs = {
             "description": "Not Allowed",
             "schema": SimpleStatusCodeResponseModel,
         },
+        "422": {
+            "description": "Unprocessable Content",
+            "schema": SimpleStatusCodeResponseModel,
+        },
         "500": {
             "description": "Internal Server Error",
             "schema": SimpleStatusCodeResponseModel,
