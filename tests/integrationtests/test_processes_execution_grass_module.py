@@ -129,7 +129,7 @@ class ProcessExecutionGrassModule(TestCase):
             json=test_g_region,
         )
         assert isinstance(resp, Response)
-        assert resp.status_code == 405
+        assert resp.status_code == 400
         assert hasattr(resp, "json")
         assert "message" in resp.json
         assert (
@@ -149,7 +149,7 @@ class ProcessExecutionGrassModule(TestCase):
             json=test_v_overlay,
         )
         assert isinstance(resp, Response)
-        assert resp.status_code == 405
+        assert resp.status_code == 400
         assert hasattr(resp, "json")
         assert "message" in resp.json
         assert (
