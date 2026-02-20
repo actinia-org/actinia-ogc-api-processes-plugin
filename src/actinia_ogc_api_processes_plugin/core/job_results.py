@@ -225,15 +225,16 @@ def get_results(
     # Exported results
     export_out_dict = None
     for pc_el in data["process_chain_list"][0]["list"]:
-        if "inputs" in pc_el:
-            for pc_inp_el in pc_el["inputs"]:
-                if "export" in pc_inp_el:
-                    export_out_dict = extract_export(
-                        pc_inp_el,
-                        pc_el["id"],
-                        resources,
-                    )
-                    result_format.update(export_out_dict)
+        # NOTE: for actinia only outputs can be exported
+        # if "inputs" in pc_el:
+        #     for pc_inp_el in pc_el["inputs"]:
+        #         if "export" in pc_inp_el:
+        #             export_out_dict = extract_export(
+        #                 pc_inp_el,
+        #                 pc_el["id"],
+        #                 resources,
+        #             )
+        #             result_format.update(export_out_dict)
         if "outputs" in pc_el:
             for pc_out_el in pc_el["outputs"]:
                 if "export" in pc_out_el:
@@ -337,20 +338,19 @@ def get_results(
             return make_response(res, 422)
 
         status_code = 204
-        if not stdout_dict and export_out_dict:
-            response = make_response("", status_code)
-            # format Link header, see e.g. here:
-            # https://greenbytes.de/tech/webdav/rfc8288.html
-            # NOTE: if needed can add 'rel' type with semicolon e.g.
-            # Link: <https://example.org/>; rel="start",
-            #       <https://example.org/index>; rel="index"
-            links_list = [
-                f"<{value['href']}>"
-                for value in result_format.values()
-                if "href" in value
-            ]
-            response.headers["Link"] = ", ".join(links_list)
-            return response
+        response = make_response("", status_code)
+        # format Link header, see e.g. here:
+        # https://greenbytes.de/tech/webdav/rfc8288.html
+        # NOTE: if needed can add 'rel' type with semicolon e.g.
+        # Link: <https://example.org/>; rel="start",
+        #       <https://example.org/index>; rel="index"
+        links_list = [
+            f"<{value['href']}>"
+            for value in result_format.values()
+            if "href" in value
+        ]
+        response.headers["Link"] = ", ".join(links_list)
+        return response
 
     elif result_response == "raw" and transmission_mode == "value":
         # -- single result
@@ -411,6 +411,8 @@ def get_results(
         return response
 
     elif result_response == "raw" and transmission_mode == "mixed":
+        # Note: mixed is default, and also valid if only export
+        # or only stdout results returned
         multipart_message = MIMEMultipart("related")
         if export_out_dict:
             for key, value in result_format.items():
@@ -431,4 +433,3 @@ def get_results(
         response = make_response(multipart_message.as_string(), status_code)
         response.headers["Content-Type"] = "multipart/related"
         return response
-    return None
