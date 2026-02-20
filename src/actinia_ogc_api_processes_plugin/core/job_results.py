@@ -162,17 +162,14 @@ def extract_export(pc_el_inout_entry, pc_el_id, resources):
 def get_results(resp):
     """Return the results of a job execution.
 
-    Different return format, dependent on
-    given response type and transmissionMode.
+    Extract the results of actinia job: either exported or stdout results.
 
     Args:
         resp: The response object containing the job execution results.
-        result_response (str | None): Format of the response.
-        transmission_mode (str | None): Defines how results are transmitted.
 
     Returns:
-        Response: A Flask response object containing the processed results
-            in the specified format and transmission mode.
+        result_format (dict): A dictionary containing the formatted results
+            of the job.
 
     """
     data = resp.json()
@@ -227,6 +224,19 @@ def get_results(resp):
 
 
 def export_ref_to_header(result_format, status_code):
+    """Generate a Flask response with reference links included in the header.
+
+    Args:
+        result_format (dict): A dictionary containing the formatted results
+            of the job.
+        status_code (int): The HTTP status code to be used in the response.
+
+    Returns:
+        Response: A Flask response object with empty body,
+            the reference links included in the "Link" header
+            and the specified HTTP status code.
+
+    """
     response = make_response("", status_code)
     # format Link header, see e.g. here:
     # https://greenbytes.de/tech/webdav/rfc8288.html
@@ -242,7 +252,18 @@ def export_ref_to_header(result_format, status_code):
     return response
 
 
-def get_results_raw_value_single_ref(value, status_code):
+def get_ref_value(value, status_code):
+    """Get the value of reference link via request.
+
+    Args:
+        value (dict): A dictionary containing the reference link information,
+        status_code (int): The HTTP status code to be used in the response.
+
+    Returns:
+        Response: A Flask response object containing the content retrieved from
+            the reference link, with the specified HTTP status code.
+
+    """
     auth = request.authorization
     kwargs = dict()
     if auth:
@@ -262,6 +283,15 @@ def get_results_raw_value_single_ref(value, status_code):
 
 
 def export_ref_to_multipart(result_format, multipart_message):
+    """Attach reference links as MIME parts to a multipart message.
+
+    Args:
+        result_format (dict): A dictionary containing the formatted results
+            of the job.
+        multipart_message (MIMEMultipart): A MIME multipart message object to
+            which the reference link parts will be attached.
+
+    """
     for key, value in result_format.items():
         if "href" in value:
             reference_part = MIMEBase("message", "external-body")

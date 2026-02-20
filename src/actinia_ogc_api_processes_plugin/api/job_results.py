@@ -46,8 +46,10 @@ class JobResults(Resource):
 
     @require_basic_auth()
     @swagger.doc(job_results.describe_job_result_get_docs)
+    # ruff: noqa: PLR0911, PLR0912, PLR0915,
     def get(self, job_id):
         """Return job results for a given job id."""
+        # ruff: noqa: PLR1702
         try:
             # -- read optional resultResponse parameter
             result_response = request.args.get("resultResponse") or "raw"
@@ -121,7 +123,10 @@ class JobResults(Resource):
                             jsonify(result_format),
                             status_code,
                         )
-                    elif result_response == "raw" and transmission_mode == "reference":
+                    elif (
+                        result_response == "raw"
+                        and transmission_mode == "reference"
+                    ):
                         # stdout result not supported as reference
                         if stdout_dict and not export_out_dict:
                             res = jsonify(
@@ -129,8 +134,9 @@ class JobResults(Resource):
                                     status=422,
                                     message=(
                                         "Format resultResponse=raw and "
-                                        "transmissionMode=reference not supported for current "
-                                        "job results. Use e.g. transmissionMode=value."
+                                        "transmissionMode=reference not "
+                                        "supported for current job results. "
+                                        "Use e.g. transmissionMode=value."
                                     ),
                                 ),
                             )
@@ -141,15 +147,19 @@ class JobResults(Resource):
                                     status=422,
                                     message=(
                                         "Format resultResponse=raw and "
-                                        "transmissionMode=reference not supported for current "
-                                        "job results. Use e.g. transmissionMode=mixed."
+                                        "transmissionMode=reference not "
+                                        "supported for current job results. "
+                                        "Use e.g. transmissionMode=mixed."
                                     ),
                                 ),
                             )
                             return make_response(res, 422)
                         status_code = 204
                         return export_ref_to_header(result_format, status_code)
-                    elif result_response == "raw" and transmission_mode == "value":
+                    elif (
+                        result_response == "raw"
+                        and transmission_mode == "value"
+                    ):
                         # -- single result
                         if len(result_format) == 1:
                             value = next(iter(result_format.values()))
@@ -166,8 +176,9 @@ class JobResults(Resource):
                                 SimpleStatusCodeResponseModel(
                                     status=422,
                                     message=(
-                                        "Format resultResponse=raw and transmissionMode=value "
-                                        "not supported for current job results. "
+                                        "Format resultResponse=raw and "
+                                        "transmissionMode=value not"
+                                        "supported for current job results. "
                                         "Use e.g. transmissionMode=reference."
                                     ),
                                 ),
@@ -178,8 +189,9 @@ class JobResults(Resource):
                                 SimpleStatusCodeResponseModel(
                                     status=422,
                                     message=(
-                                        "Format resultResponse=raw and transmissionMode=value "
-                                        "not supported for current job results. "
+                                        "Format resultResponse=raw and "
+                                        "transmissionMode=value not supported "
+                                        "for current job results. "
                                         "Use e.g. transmissionMode=mixed."
                                     ),
                                 ),
@@ -190,19 +202,31 @@ class JobResults(Resource):
                         if stdout_dict:
                             stdout_to_multipart(stdout_dict, multipart_message)
 
-                        response = make_response(multipart_message.as_string(), status_code)
+                        response = make_response(
+                            multipart_message.as_string(),
+                            status_code,
+                        )
                         response.headers["Content-Type"] = "multipart/related"
                         return response
-                    elif result_response == "raw" and transmission_mode == "mixed":
+                    elif (
+                        result_response == "raw"
+                        and transmission_mode == "mixed"
+                    ):
                         # Note: mixed is default, and also valid if only export
                         # or only stdout results returned
                         multipart_message = MIMEMultipart("related")
                         if export_out_dict:
-                            export_ref_to_multipart(result_format, multipart_message)
+                            export_ref_to_multipart(
+                                result_format,
+                                multipart_message,
+                            )
                         if stdout_dict:
                             stdout_to_multipart(stdout_dict, multipart_message)
 
-                        response = make_response(multipart_message.as_string(), status_code)
+                        response = make_response(
+                            multipart_message.as_string(),
+                            status_code,
+                        )
                         response.headers["Content-Type"] = "multipart/related"
                         return response
                 elif status_info["status"] == "failed":
