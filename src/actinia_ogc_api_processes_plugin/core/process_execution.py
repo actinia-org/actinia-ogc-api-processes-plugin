@@ -12,11 +12,25 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
+import json
+
 import requests
-from flask import has_request_context, request
+from flask import has_request_context, jsonify, request
 from requests.auth import HTTPBasicAuth
 
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
+
+GRASS_MODULE_TYPE = {
+    "r": "raster",
+    "v": "vector",
+    "r3": "3Draster",
+    "i": "imagery",
+    "d": "display",
+    "g": "gerneral",
+    "db": "database",
+    "t": "temporal",
+    "m": "miscellaneous",
+}
 
 
 def generate_new_joblinks(job_id: str) -> list[dict]:
@@ -50,6 +64,55 @@ def _transform_to_actinia_process_chain(
     }
 
 
+def _add_exporter_to_pc_list(
+    process_type: str,
+    pc_list: list,
+    process: dict,
+    input_map: str,
+):
+    """Add exporter to process chain list."""
+    out_maps = [
+        param["value"]
+        for param in process["inputs"]
+        if param["param"] == "output"
+    ]
+    output_map = out_maps[0] if out_maps else input_map
+    output_format = "GTiff"  # or COG ?
+    if process_type == "vector":
+        output_format = "GPKG"
+    exporter = {
+        "id": "exporter_1",
+        "module": "exporter",
+        "outputs": [
+            {
+                "export": {"format": output_format, "type": process_type},
+                "param": "map",
+                "value": output_map,
+            },
+        ],
+    }
+    pc_list.append(exporter)
+
+
+def _add_regionsetting_to_pc_list(
+    process_type: str, pc_list: list, input_map: str,
+):
+    """Add region setting to process chain list."""
+    set_region = {
+        "id": "g_region_1",
+        "module": "g.region",
+        "inputs": [
+            {
+                "param": process_type,
+                "value": input_map,
+            },
+        ],
+    }
+    if process_type == "vector":
+        set_region["inputs"].append({"param": "cols", "value": "1"})
+    pc_list.insert(0, set_region)
+
+
 def post_process_execution(
     process_id: str | None = None,
     postbody: str | None = None,
@@ -62,7 +125,7 @@ def post_process_execution(
 
     # Check if process exists in actinia
     resp = requests.get(
-        f"{ACTINIA.processing_base_url}/actinia_modules/{process_id}",
+        f"{ACTINIA.processing_base_url}/modules/{process_id}",
         **kwargs,
     )
     if resp.status_code != 200:
@@ -73,9 +136,38 @@ def post_process_execution(
         project_name = postbody.get("inputs").get("project")
 
     pc = _transform_to_actinia_process_chain(process_id, postbody)
-    kwargs["json"] = pc
+
+    # adjust pc if process is grass module
+    module_info = json.loads(resp.text)
+    if "grass-module" in module_info["categories"]:
+        has_input = any(
+            param.get("name") in {"input", "map"}
+            for param in module_info.get("parameters", [])
+        )
+        process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
+        if not has_input or process_type not in {"raster", "vector"}:
+            msg = f"Process execution of <{process_id}> not supported."
+            return (
+                jsonify({"message": msg}),
+                405,
+            )
+        # adjust PC list
+        pc_list = pc["list"]
+        process = pc_list[0]
+        # add importer if input by reference
+        # TODO
+        # add region setting to pc
+        input_map = next(
+            param["value"]
+            for param in process["inputs"]
+            if param["param"] in {"input", "map"}
+        )
+        _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
+        # add exporter
+        _add_exporter_to_pc_list(process_type, pc_list, process, input_map)
 
     # Start process via actinia-module-plugin
+    kwargs["json"] = pc
     url_process_execution = (
         f"{ACTINIA.processing_base_url}/projects/{project_name}/"
         "processing_export"

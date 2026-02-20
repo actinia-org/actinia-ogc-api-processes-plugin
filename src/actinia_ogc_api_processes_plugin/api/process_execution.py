@@ -78,6 +78,15 @@ class ProcessExecution(Resource):
                     },
                 )
                 return make_response(res, 404)
+            elif resp.status_code == 405:
+                log.error("ERROR: The request method is not supported")
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=405,
+                        message=resp.message,
+                    ),
+                )
+                return make_response(res, 500)
             else:
                 log.error("ERROR: Internal Server Error")
                 log.debug(f"actinia status code: {resp.status_code}")
