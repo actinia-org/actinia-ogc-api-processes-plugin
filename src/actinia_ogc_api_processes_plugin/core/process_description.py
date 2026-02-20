@@ -43,7 +43,7 @@ def get_module_description(process_id):
 
 
 def update_resp(resp_json: dict) -> dict:
-    """Append GRASS GIS project to input description."""
+    """Append GRASS GIS project to input description and jobControlOptions."""
     project_input = {
         "description": "Name of GRASS GIS project to use",
         "name": "project",
@@ -53,5 +53,10 @@ def update_resp(resp_json: dict) -> dict:
     }
 
     resp_json["parameters"].append(project_input)
+
+    # currently only asynchronous processing is supported
+    resp_json["jobControlOptions"] = [
+        "async-execute",
+    ]
 
     return resp_json
