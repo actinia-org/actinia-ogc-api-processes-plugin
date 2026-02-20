@@ -147,7 +147,7 @@ def post_process_execution(
         process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
         # check if module hast input/map parameter
         has_input = any(
-            param.get("name") in {"input", "map"}       # TODO
+            param.get("name") in {"input", "map"}
             for param in module_info.get("parameters", [])
         )
         if not has_input or process_type not in {"raster", "vector"}:
