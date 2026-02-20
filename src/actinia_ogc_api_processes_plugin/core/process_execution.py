@@ -95,7 +95,9 @@ def _add_exporter_to_pc_list(
 
 
 def _add_regionsetting_to_pc_list(
-    process_type: str, pc_list: list, input_map: str,
+    process_type: str,
+    pc_list: list,
+    input_map: str,
 ):
     """Add region setting to process chain list."""
     set_region = {
@@ -140,11 +142,13 @@ def post_process_execution(
     # adjust pc if process is grass module
     module_info = json.loads(resp.text)
     if "grass-module" in module_info["categories"]:
+        # get GRASS processing type
+        process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
+        # check if module hast input/map parameter
         has_input = any(
             param.get("name") in {"input", "map"}
             for param in module_info.get("parameters", [])
         )
-        process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
         if not has_input or process_type not in {"raster", "vector"}:
             msg = f"Process execution of <{process_id}> not supported."
             return (
