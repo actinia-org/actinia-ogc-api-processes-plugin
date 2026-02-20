@@ -433,3 +433,4 @@ def get_results(
         response = make_response(multipart_message.as_string(), status_code)
         response.headers["Content-Type"] = "multipart/related"
         return response
+    return None

@@ -10,22 +10,24 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
+import email
+
 import pytest
 from flask import Response
 
 from tests.testsuite import TestCase
 
-import email
-
 job_id_single_stdout = "037f2417-8c6e-423f-8e57-f38ac5f50b67"
 job_id_multiple_stdout = "b1d5702c-87d6-490d-ad1f-5edd792c8720"
-job_id_single_export="8c88e3aa-3ba2-4050-9c2f-b3ad0a60f880"
+job_id_single_export = "8c88e3aa-3ba2-4050-9c2f-b3ad0a60f880"
 job_id_multiple_export = "20d5b068-02ee-4791-805d-d0fc63c6c8c4"
 job_id_file_export = "5af91732-7c71-481b-84c2-5dcc40dd0968"
 job_id_export_and_stdout = "54384c50-5dd3-4179-aef5-f3110b1bf12c"
 job_id_failed = "a04d145e-4073-4c33-8f76-5b160a20d05c"
 
+
 def parse_multipart_related(data: bytes):
+    """Parse multipart data."""
     msg = email.message_from_bytes(data, policy=email.policy.default)
     parts = {
         "content_type": list(),
@@ -39,6 +41,7 @@ def parse_multipart_related(data: bytes):
             parts["content_location"].append(part.get("Content-Location", ""))
     return parts
 
+
 class JobResultsTest(TestCase):
     """Test class for getting job results.
 
@@ -47,6 +50,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_document_export_and_stdout(self) -> None:
+        """Return results as document json."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_export_and_stdout}/results?"
@@ -58,7 +62,7 @@ class JobResultsTest(TestCase):
         assert resp.status_code == 200
         assert hasattr(resp, "json")
         resp_keys = list(resp.json.keys())
-        resp_values =  list(resp.json.values())
+        resp_values = list(resp.json.values())
         # check exemplary exported output: gpkg as zip with href link
         assert resp_keys[0] == "exporter_1_hospitals_cumberland_vector_GPKG"
         assert "href" in resp_values[0]
@@ -66,8 +70,11 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_document_export_file(self) -> None:
-        # Job with file export generated from GRASS GIS module
-        # (value with $file::unique_id)
+        """Return results as document json.
+
+        For job with file export generated from GRASS GIS module
+        (value with $file::unique_id)
+        """
         resp = self.app.get(
             (
                 f"/jobs/{job_id_file_export}/results?"
@@ -80,6 +87,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_reference_only_stdout(self) -> None:
+        """Return 422 for raw/reference if only stdout results."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
@@ -97,6 +105,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_reference_export_and_stdout(self) -> None:
+        """Return 422 for raw/reference if export and stdout results."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_export_and_stdout}/results?resultResponse=raw&"
@@ -114,6 +123,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_reference_only_export(self) -> None:
+        """Return 204 for raw/reference if only export results."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
@@ -130,6 +140,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_value_single_export(self) -> None:
+        """Return results for raw/value if only single export returned."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_single_export}/results?resultResponse=raw&"
@@ -145,6 +156,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_value_single_stdout(self) -> None:
+        """Return results for raw/value if only single stdout returned."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_single_stdout}/results?resultResponse=raw&"
@@ -156,12 +168,13 @@ class JobResultsTest(TestCase):
         assert resp.status_code == 200
         assert hasattr(resp, "data")
         assert resp.data == (
-                b'["aspect","basin_50K","elevation",'
-                b'"landuse96_28m","lsat7_2002_10","slope"]\n'
+            b'["aspect","basin_50K","elevation",'
+            b'"landuse96_28m","lsat7_2002_10","slope"]\n'
         )
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_value_multiple_export(self) -> None:
+        """Return 422 for raw/value if multiple export results."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
@@ -179,6 +192,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_value_export_and_stdout(self) -> None:
+        """Return 422 for raw/value if export and stdout results."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_export_and_stdout}/results?resultResponse=raw&"
@@ -196,6 +210,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_value_multiple_stdout(self) -> None:
+        """Return results for raw/value if multiple stdout returned."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
@@ -215,6 +230,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_mixed_only_export(self) -> None:
+        """Return results for raw/mixed if only export returned + default."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
@@ -245,6 +261,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_mixed_only_stdout(self) -> None:
+        """Return results for raw/mixed if only stdout returned."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
@@ -264,6 +281,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_raw_mixed_export_and_stdout(self) -> None:
+        """Return results for raw/mixed if export and stdout returned."""
         resp = self.app.get(
             (
                 f"/jobs/{job_id_export_and_stdout}/results?resultResponse=raw&"
@@ -283,6 +301,7 @@ class JobResultsTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_job_results_failed_job(self) -> None:
+        """Return 400 for failed job."""
         resp = self.app.get(
             f"/jobs/{job_id_failed}/results",
             headers=self.HEADER_AUTH,
