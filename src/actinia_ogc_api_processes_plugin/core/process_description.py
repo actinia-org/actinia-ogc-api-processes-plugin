@@ -54,4 +54,9 @@ def update_resp(resp_json: dict) -> dict:
 
     resp_json["parameters"].append(project_input)
 
+    # actinia only supports asynchron processing
+    resp_json["jobControlOptions"] = [
+        "async-execute",
+    ]
+
     return resp_json
