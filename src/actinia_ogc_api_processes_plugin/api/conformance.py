@@ -21,6 +21,7 @@ class Conformance(Resource):
     """Conformance handling."""
 
     def __init__(self) -> None:
+        """Initialise."""
         self.msg = "Return conformance classes"
 
     @require_basic_auth()
@@ -29,8 +30,14 @@ class Conformance(Resource):
         conforms = {
             "conformsTo": [
                 "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
-                "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/job-list",
-                "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/dismiss",
+                (
+                    "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/"
+                    "job-list"
+                ),
+                (
+                    "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/"
+                    "dismiss"
+                ),
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/json",
             ],
         }
