@@ -59,4 +59,18 @@ def update_resp(resp_json: dict) -> dict:
         "async-execute",
     ]
 
+    # Convert list of parameters to a dict keyed by parameter name
+    params = resp_json.pop("parameters", [])
+    inputs = {}
+    for p in params:
+        name = p.get("name")
+        if name is None:
+            continue
+        # keep parameter fields but remove the redundant 'name' field
+        value = {k: v for k, v in p.items() if k != "name"}
+        inputs[name] = value
+
+    resp_json["inputs"] = inputs
+    resp_json["outputs"] = resp_json.pop("returns", {})
+
     return resp_json
