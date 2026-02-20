@@ -79,7 +79,7 @@ class ProcessExecution(Resource):
                 )
                 return make_response(res, 404)
             elif resp.status_code == 400:
-                log.error("ERROR: The request method is not supported")
+                log.error("ERROR: The requested module is not supported")
                 return resp
             else:
                 log.error("ERROR: Internal Server Error")
