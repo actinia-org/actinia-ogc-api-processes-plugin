@@ -24,15 +24,15 @@ from actinia_ogc_api_processes_plugin.model.response_models import (
 from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 
 GRASS_MODULE_TYPE = {
-    "r": "raster",
-    "v": "vector",
-    "r3": "3Draster",
-    "i": "imagery",
     "d": "display",
-    "g": "gerneral",
     "db": "database",
-    "t": "temporal",
+    "g": "general",
+    "i": "imagery",
     "m": "miscellaneous",
+    "r": "raster",
+    "r3": "3Draster",
+    "t": "temporal",
+    "v": "vector",
 }
 
 
