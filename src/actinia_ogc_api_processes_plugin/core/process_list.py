@@ -87,6 +87,7 @@ def get_modules(limit: int | None = None):
                 },
             )
         if limit is not None:
+            # TODO: use limit from actinia-module-plugin when implemented
             resp_format["processes"] = resp_format["processes"][:limit]
         # from https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/schemas/link.yaml
         # required: href (string)
