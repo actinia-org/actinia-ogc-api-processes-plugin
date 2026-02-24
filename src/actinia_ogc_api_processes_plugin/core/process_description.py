@@ -51,12 +51,34 @@ def update_resp(resp_json: dict) -> dict:
         "schema": {"type": "string"},
         "default": ACTINIA.default_project,
     }
-
     resp_json["parameters"].append(project_input)
 
     # currently only asynchronous processing is supported
     resp_json["jobControlOptions"] = [
         "async-execute",
     ]
+
+    # Convert list of parameters to a dict keyed by parameter name
+    params = resp_json.pop("parameters", [])
+    inputs = {}
+    for p in params:
+        name = p.get("name")
+        if name is None:
+            continue
+        # keep parameter fields but remove the redundant 'name' field
+        value = {k: v for k, v in p.items() if k != "name"}
+        inputs[name] = value
+    resp_json["inputs"] = inputs
+
+    # Same for returns/outputs
+    returns = resp_json.pop("returns", [])
+    outputs = {}
+    for r in returns:
+        name = r.get("name")
+        if name is None:
+            continue
+        value = {k: v for k, v in r.items() if k != "name"}
+        outputs[name] = value
+    resp_json["outputs"] = outputs
 
     return resp_json

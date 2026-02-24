@@ -53,6 +53,55 @@ class ProcessesTest(TestCase):
         ), "There is no 'href' inside 'links'"
 
     @pytest.mark.integrationtest
+    def test_get_processes_limit_parameter(self) -> None:
+        """Test the get method of the /processes endpoint with limit.
+
+        Succesfull query
+        """
+        resp = self.app.get(
+            "/processes",
+            query_string={"limit": 1},
+            headers=self.HEADER_AUTH,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 200
+        assert hasattr(resp, "json")
+        assert "processes" in resp.json
+        assert len(resp.json["processes"]) == 1
+
+    @pytest.mark.integrationtest
+    def test_get_processes_wrong_limit_parameter(self) -> None:
+        """Test the get method of the /processes endpoint with limit.
+
+        Invalid limit value (string)
+        """
+        resp = self.app.get(
+            "/processes",
+            query_string={"limit": "abc"},
+            headers=self.HEADER_AUTH,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 400
+        assert hasattr(resp, "json")
+        assert "message" in resp.json
+
+    @pytest.mark.integrationtest
+    def test_get_processes_wrong_limit_parameter_2(self) -> None:
+        """Test the get method of the /processes endpoint with limit.
+
+        Invalid limit value (string)
+        """
+        resp = self.app.get(
+            "/processes",
+            query_string={"limit": "20000"},
+            headers=self.HEADER_AUTH,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 400
+        assert hasattr(resp, "json")
+        assert "message" in resp.json
+
+    @pytest.mark.integrationtest
     def test_get_processes_missing_auth(self) -> None:
         """Test the get method of the /processes endpoint.
 
