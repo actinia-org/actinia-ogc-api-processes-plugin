@@ -22,7 +22,7 @@ from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 from actinia_ogc_api_processes_plugin.resources.logging import log
 
 
-def get_modules():
+def get_modules(limit: int | None = None):
     """Get all modules (for current user).
 
     All grass-modules and actinia-modules and format them
@@ -86,6 +86,8 @@ def get_modules():
                     "keywords": el["categories"],
                 },
             )
+        if limit is not None:
+            resp_format["processes"] = resp_format["processes"][:limit]
         # from https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi/schemas/link.yaml
         # required: href (string)
         resp_format["links"].append(
