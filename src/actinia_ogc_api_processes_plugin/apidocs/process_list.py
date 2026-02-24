@@ -20,6 +20,21 @@ describe_process_list_get_docs = {
     # "summary" is taken from the description of the get method
     "tags": ["process_list"],
     "description": "Process identifiers, links to process descriptions.",
+    "parameters": [
+        {
+            "name": "limit",
+            "in": "query",
+            "required": False,
+            "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000,
+                "default": 10000,
+            },
+            "description": "Maximum number of returned processes (1-10000).",
+            "type": "integer",
+        },
+    ],
     "responses": {
         "200": {
             "description": (

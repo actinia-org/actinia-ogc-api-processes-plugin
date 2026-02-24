@@ -106,7 +106,7 @@ class JobListTest(TestCase):
 
     @pytest.mark.integrationtest
     def test_get_jobs_no_job(self) -> None:
-        """Wrong limit parameter GET to /jobs?processID=not_existing."""
+        """No job found GET to /jobs?processID=not_existing."""
         resp = self.app.get(
             "/jobs",
             query_string={"processID": "not_existing"},
