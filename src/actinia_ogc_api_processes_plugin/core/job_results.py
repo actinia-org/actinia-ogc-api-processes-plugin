@@ -52,6 +52,8 @@ def format_to_prefix(export_type, export_format):
             prefix = ".sqlite"
         if export_format == "CSV":
             prefix = ".csv"
+        # NOTE: adjust when in actinia-core vector date with only one file
+        # are not zipped (equal to raster export) e.g. for single GPKG
         prefix += ".zip"
     if export_type == "raster" and (export_format in {"GTiff", "COG"}):
         prefix = ".tif"
@@ -83,6 +85,8 @@ def format_to_mimetype(export_type, export_format):
     mimetype = ""
 
     if export_type == "vector":
+        # NOTE: adjust when in actinia-core vector date with only one file
+        # are not zipped (equal to raster export) e.g. for single GPKG
         mimetype = "application/zip"
     if export_type == "raster" and (export_format in {"GTiff", "COG"}):
         mimetype = "image/tiff"
