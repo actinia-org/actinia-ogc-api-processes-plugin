@@ -26,14 +26,16 @@ services:
 
   actinia-core:
     image: mundialis/actinia:2.14.0
+    volumes:
+      - ./actinia-data/resources:/actinia_core/resources
     # ports:
     #  - "8088:8088"
     depends_on:
       - valkey
 
   valkey:
-    # volumes:
-    #   - ./valkey_data:/data
+    volumes:
+      - ./valkey_data:/data
     image: valkey/valkey:9.0-alpine
     command: [
       "sh",
