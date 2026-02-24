@@ -52,6 +52,24 @@ def cancel_actinia_job(job_id):
     return requests.delete(url, **kwargs)
 
 
+def add_actinia_logs(status_info, data):
+    """Add a link to the actinia job log to the given status_info dict."""
+    actinia_log_url = data["urls"]["status"].replace(
+        r"https?://[^/]+/api/v\d+",
+        ACTINIA.user_actinia_base_url,
+    )
+    if "links" not in status_info:
+        status_info["links"] = list()
+    # TODO: rel type like this??
+    status_info["links"].append(
+        {
+            "href": actinia_log_url,
+            "rel": "log",
+            "title": "Actinia Job Log",
+        },
+    )
+
+
 def get_job_status_info(job_id):
     """Return a tuple (status_code, status_info_dict_or_None, response).
 
@@ -65,6 +83,7 @@ def get_job_status_info(job_id):
     if status_code == 200:
         data = resp.json()
         status_info = parse_actinia_job(job_id, data)
+        add_actinia_logs(status_info, data)
         return 200, status_info, resp
 
     # Actinia returns HTTP 400 both for 'no such job' and for
@@ -88,6 +107,7 @@ def get_job_status_info(job_id):
 
         if isinstance(data, dict) and indicative_keys.issubset(data.keys()):
             status_info = parse_actinia_job(job_id, data)
+            add_actinia_logs(status_info, data)
             return 200, status_info, resp
 
         return 404, None, resp
