@@ -11,7 +11,7 @@ __author__ = "Lina Krisztian"
 __copyright__ = "Copyright 2025 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
-from flask import jsonify, make_response
+from flask import jsonify, make_response, request
 from flask_restful_swagger_2 import Resource, swagger
 from requests.exceptions import ConnectionError  # noqa: A004
 
@@ -40,11 +40,32 @@ class ProcessList(Resource):
         and link to process descriptions.
         """
         try:
+            # read optional limit parameter
+            limit = request.args.get("limit") or 10000
+            try:
+                limit = int(limit)
+            except (TypeError, ValueError):
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=400,
+                        message="ERROR: Invalid limit parameter",
+                    ),
+                )
+                return make_response(res, 400)
+            if limit < 1 or limit > 10000:
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=400,
+                        message="ERROR: Limit must be between 1 and 10000",
+                    ),
+                )
+                return make_response(res, 400)
+
             (
                 processes,
                 status_code_grass_modules,
                 status_code_actinia_modules,
-            ) = get_modules()
+            ) = get_modules(limit=limit)
             if (
                 status_code_grass_modules == 200
                 and status_code_actinia_modules == 200

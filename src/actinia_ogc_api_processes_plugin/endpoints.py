@@ -15,6 +15,7 @@ from flask_restful_swagger_2 import Api
 
 from actinia_ogc_api_processes_plugin.api.conformance import Conformance
 from actinia_ogc_api_processes_plugin.api.job_list import JobList
+from actinia_ogc_api_processes_plugin.api.job_results import JobResults
 from actinia_ogc_api_processes_plugin.api.job_status_info import JobStatusInfo
 from actinia_ogc_api_processes_plugin.api.landing_page import LandingPage
 from actinia_ogc_api_processes_plugin.api.process_description import (
@@ -39,6 +40,7 @@ def create_endpoints(flask_api: Api) -> None:
         # map /api.json to /api
         return app.test_client().get("/api.json")
 
+    apidoc.add_resource(JobResults, "/jobs/<string:job_id>/results")
     apidoc.add_resource(LandingPage, "/")
     apidoc.add_resource(Conformance, "/conformance")
     apidoc.add_resource(JobList, "/jobs")
