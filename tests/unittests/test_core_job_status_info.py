@@ -47,6 +47,7 @@ def test_get_job_status_info_success_and_error(monkeypatch):
         "time_delta": 3600,
         "progress": {"num_of_steps": 4, "step": 2},
         "links": [{"href": "http://example.com/out", "rel": "alternate"}],
+        "urls": {"status": "http://example.com/status"},
     }
 
     resp = MockResp(200, json_data=sample, text="ok")

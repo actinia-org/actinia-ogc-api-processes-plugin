@@ -35,6 +35,7 @@ from actinia_ogc_api_processes_plugin.core.job_status_info import (
 from actinia_ogc_api_processes_plugin.model.response_models import (
     SimpleStatusCodeResponseModel,
 )
+from actinia_ogc_api_processes_plugin.resources.config import ACTINIA
 from actinia_ogc_api_processes_plugin.resources.logging import log
 
 
@@ -47,7 +48,7 @@ class JobResults(Resource):
 
     @require_basic_auth()
     @swagger.doc(job_results.describe_job_result_get_docs)
-    # ruff: noqa: PLR0911, PLR0912, PLR0915,
+    # ruff: noqa: PLR0911, PLR0912, PLR0915, PLR0914
     def get(self, job_id):
         """Return job results for a given job id."""
         # ruff: noqa: PLR1702
@@ -96,10 +97,17 @@ class JobResults(Resource):
             # -- request job results
             status_code, status_info, resp = get_job_status_info(job_id)
             if status_code == 200:
+                # Return full actinia response for logs
+                actinia_log_url = resp.json()["urls"]["status"].replace(
+                    r"https?://[^/]+/api/v\d+",
+                    ACTINIA.user_actinia_base_url,
+                )
                 if status_info["status"] == "successful":
-                    result_format, stdout_dict, export_out_dict = get_results(
-                        resp,
-                    )
+                    (
+                        result_format,
+                        stdout_dict,
+                        export_out_dict,
+                    ) = get_results(resp)
                     # default status_code for most returns
                     status_code = 200
                     # -- Return results dependent on key-value of
@@ -120,6 +128,9 @@ class JobResults(Resource):
                         # Especially for actinia result format already fixed:
                         # stdout -> value | export -> reference
                         # thus no need to filter for transmissionMode
+
+                        # Add full actinia response as log
+                        result_format["log"] = actinia_log_url
                         return make_response(
                             jsonify(result_format),
                             status_code,
@@ -243,12 +254,9 @@ class JobResults(Resource):
                             "status": failure_status_code,
                             "detail": (
                                 f"Job '{job_id}' failed: "
-                                f"{status_info['message']}"
+                                f"{status_info['message']}. "
+                                f"For details see log: {actinia_log_url}"
                             ),
-                            # "instance":
-                            # TODO -> full actinia log url
-                            # see also within core.job_results.get_results()
-                            # here or/and within job_status_info?
                         },
                     )
                     return make_response(res, failure_status_code)
