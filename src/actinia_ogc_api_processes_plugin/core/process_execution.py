@@ -134,6 +134,24 @@ def post_process_execution(
     if resp.status_code != 200:
         return resp
 
+    # Check if input values as array,
+    # if defined as array within process description.
+    for params in resp.json()["parameters"]:
+        if params["schema"]["type"] == "array":
+            input_value = postbody.get("inputs", {}).get(params["name"])
+            if input_value and not isinstance(input_value, list):
+                msg = (
+                    f"Input parameter '{params['name']}' should be an array,"
+                    f" but got {type(input_value).__name__}."
+                )
+                res = jsonify(
+                    SimpleStatusCodeResponseModel(
+                        status=400,
+                        message=msg,
+                    ),
+                )
+                return make_response(res, 400)
+
     project_name = ACTINIA.default_project
     if postbody.get("inputs").get("project"):
         project_name = postbody.get("inputs").get("project")
