@@ -31,10 +31,18 @@ class JobStatusInfoTest(TestCase):
         assert hasattr(resp, "json")
         assert "jobID" in resp.json, "There is no 'jobID' in response"
         assert "status" in resp.json, "There is no 'status' in response"
-        assert "links" in resp.json, "There is no 'links' in response"
         assert resp.json["status"] == "successful"
+        assert "processID" in resp.json, "There is no 'processID' in response"
+        assert "created" in resp.json, "There is no 'created' in response"
+        assert "updated" in resp.json, "There is no 'updated' in response"
+        assert "finished" in resp.json, "There is no 'finished' in response"
+        assert "progress" in resp.json, "There is no 'progress' in response"
+        assert resp.json["progress"] == 100, "Progress is not '100'"
+        assert "links" in resp.json, "There is no 'links' in response"
+        assert isinstance(resp.json["links"], list)
         # url to actinia logs appended as last element
-        assert "log" in resp.json["links"][-1]["rel"]
+        assert "convertedfrom" in resp.json["links"][-1]["rel"]
+        assert "Full actinia job log" in resp.json["links"][-1]["title"]
         assert "resource_id" in resp.json["links"][-1]["href"]
 
     # Can only be activated when example job is available in actinia instance
@@ -52,7 +60,8 @@ class JobStatusInfoTest(TestCase):
         assert "links" in resp.json, "There is no 'links' in response"
         assert resp.json["status"] == "failed"
         # url to actinia logs appended as last element
-        assert "log" in resp.json["links"][-1]["rel"]
+        assert "convertedfrom" in resp.json["links"][-1]["rel"]
+        assert "Full actinia job log" in resp.json["links"][-1]["title"]
         assert "resource_id" in resp.json["links"][-1]["href"]
 
     @pytest.mark.integrationtest

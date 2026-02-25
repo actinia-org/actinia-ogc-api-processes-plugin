@@ -60,12 +60,12 @@ def add_actinia_logs(status_info, data):
     )
     if "links" not in status_info:
         status_info["links"] = list()
-    # TODO: rel type like this??
+    # rel type from IANA link relations
     status_info["links"].append(
         {
             "href": actinia_log_url,
-            "rel": "log",
-            "title": "Actinia Job Log",
+            "title": "Full actinia job log",
+            "rel": "convertedfrom",
         },
     )
 
