@@ -13,6 +13,7 @@ __author__ = "Lina Krisztian"
 __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
+import re
 
 from email.mime.multipart import MIMEMultipart
 
@@ -98,9 +99,10 @@ class JobResults(Resource):
             status_code, status_info, resp = get_job_status_info(job_id)
             if status_code == 200:
                 # Return full actinia response for logs
-                actinia_log_url = resp.json()["urls"]["status"].replace(
-                    r"https?://[^/]+/api/v\d+",
+                actinia_log_url = re.sub(
+                    r"https?:\/\/(.*?)\/api\/v\d+",
                     ACTINIA.user_actinia_base_url,
+                    resp.json()["urls"]["status"],
                 )
                 if status_info["status"] == "successful":
                     (
