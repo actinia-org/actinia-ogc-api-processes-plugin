@@ -92,6 +92,38 @@ docker exec -t docker-actinia-ogc-api-processes-1 make devtest
 docker compose -f "docker/docker-compose.yml" down
 ```
 
+## Running validator
+The OGC teamengine is included in the dev setup with vscode.
+Open [teamengine locally](http://localhost:8080/teamengine) (ogctest:ogctest), view sessions
+and "Create a new session" with Specification: "OGC API - Processes - 1.0  [ 1.3 ]" and then enter
+`http://actinia-gdi:actinia-gdi@actinia-ogc-api-processes:4044` as "Location of the landing page".
+
+This will successfully test everything which does not include following urls because the
+authentication is not passed. To overcome this, a proxy can be used:
+```bash
+docker run -d \
+  --name ogc-proxy \
+  -p 9000:80 \
+  --network actinia-docker_actinia-dev \
+  nginx:alpine \
+  sh -c 'printf "
+events {}
+http {
+  server {
+    listen 80;
+    location / {
+      proxy_pass http://actinia-ogc-api-processes:4044;
+      proxy_set_header Authorization \"Basic YWN0aW5pYS1nZGk6YWN0aW5pYS1nZGk=\";
+      proxy_set_header Host \$host;
+      proxy_set_header X-Real-IP \$remote_addr;
+    }
+  }
+}
+" > /etc/nginx/nginx.conf && nginx -g "daemon off;"'
+```
+Then use `http://ogc-proxy:80` as "Location of the landing page", for which no authentication is required.
+
+
 ## Hint for the development of actinia plugins
 
 ### skip permission check

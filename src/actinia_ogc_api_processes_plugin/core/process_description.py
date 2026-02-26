@@ -98,4 +98,8 @@ def update_resp(resp_json: dict) -> dict:
         outputs[name] = value
     resp_json["outputs"] = outputs
 
+    # add outputs also to inputs, as some processes (e.g. GRASS modules)
+    # require output names as input parameters
+    resp_json["inputs"].update(outputs)
+
     return resp_json

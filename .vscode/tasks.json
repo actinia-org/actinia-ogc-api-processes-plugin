@@ -12,16 +12,21 @@
 			}
 		},
 		{
+			"label": "start-teamengine",
+			"type": "shell",
+			"command": "docker run -d --network actinia-docker_actinia-dev -p 8080:8080 ogccite/ets-ogcapi-processes10 || true",
+			"isBackground": true
+		},
+		{
 			"type": "docker-run",
 			"label": "docker-run: debug",
 			"dependsOn": [
-				"docker-build"
+				"docker-build",
+				"start-teamengine"
 			],
 			"python": {
 				"module": "flask",
 				"args": [
-					"-e",
-					"/src/.env",
 					"run",
 					"--no-debugger",
 					"--host",
