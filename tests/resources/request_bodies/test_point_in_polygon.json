@@ -1,0 +1,7 @@
+{
+    "inputs": {
+        "url_to_geojson_point": "https://raw.githubusercontent.com/mmacata/pagestest/gh-pages/pointInBonn.geojson"
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document"
+}
