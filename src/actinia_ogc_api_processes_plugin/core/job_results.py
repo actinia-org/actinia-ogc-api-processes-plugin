@@ -150,7 +150,7 @@ def extract_export(pc_el_inout_entry, pc_el_id, resources):
     if match_resource_url:
         # replace user-url with base-url
         resource_url = re.sub(
-            r"https?://[^/]+/api/v\d+",
+            r"https?:\/\/(.*?)\/api\/v\d+",
             ACTINIA.user_actinia_base_url,
             match_resource_url[0],
         )
@@ -269,7 +269,7 @@ def get_ref_value(value, status_code):
             auth.password,
         )
     url = re.sub(
-        r"https?://[^/]+/api/v\d+",
+        r"https?:\/\/(.*?)\/api\/v\d+",
         ACTINIA.processing_base_url,
         value["href"],
     )
