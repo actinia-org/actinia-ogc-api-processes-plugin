@@ -43,8 +43,8 @@ def get_module_description(process_id):
 
 
 def update_resp(resp_json: dict) -> dict:
-    """ Update process description response from actinia.
-    
+    """Update process description response from actinia.
+
     Append bounding box and GRASS GIS project to input description
     and jobControlOptions.
     """
@@ -56,10 +56,10 @@ def update_resp(resp_json: dict) -> dict:
         ),
         "name": "bounding_box",
         "optional": True,
-        "schema": {"type": "array"},
+        "schema": {"type": "bbox"},
     }
     resp_json["parameters"].append(bounding_box_input)
-    
+
     # procect Input
     project_input = {
         "description": "Name of GRASS GIS project to use",
