@@ -118,6 +118,7 @@ def _add_regionsetting_to_pc_list(
     pc_list.insert(0, set_region)
 
 
+# ruff: noqa: PLR0912, PLR0914,
 def _invalid_inputs(module_info: dict, inputs: dict):
     """Check if given inputs are valid."""
     """
