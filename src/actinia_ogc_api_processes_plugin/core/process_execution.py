@@ -48,7 +48,10 @@ def _transform_to_actinia_process_chain(
     """Transform execute postbody to actinia process chain format."""
     inputs = execute_request.get("inputs", [])
     inputs_array = [
-        {"param": key, "value": value}
+        {
+            "param": key,
+            "value": ",".join(value) if isinstance(value, list) else value,
+        }
         for key, value in inputs.items()
         if key != "project"
     ]
