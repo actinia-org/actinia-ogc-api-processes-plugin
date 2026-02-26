@@ -1,0 +1,15 @@
+{
+  "inputs": {
+      "input": "boundary_county",
+      "output": "boundary_county_1_buf",
+      "cats": "1",
+      "distance": 2,
+      "s": true
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}

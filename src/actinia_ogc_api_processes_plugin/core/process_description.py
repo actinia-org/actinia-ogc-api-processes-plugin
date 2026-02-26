@@ -84,6 +84,9 @@ def update_resp(resp_json: dict) -> dict:
             continue
         # keep parameter fields but remove the redundant 'name' field
         value = {k: v for k, v in p.items() if k != "name"}
+        # subtype not allowed in validator, removing it
+        if "schema" in value:
+            value["schema"].pop("subtype", None)
         inputs[name] = value
     resp_json["inputs"] = inputs
 

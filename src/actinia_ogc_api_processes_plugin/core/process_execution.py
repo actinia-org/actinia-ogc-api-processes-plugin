@@ -65,8 +65,14 @@ def _transform_to_actinia_process_chain(
                 ),
             }
             for key, value in inputs.items()
-            if key not in {"project", "bounding_box"}
+            if key not in {"project", "bounding_box"} and len(key) > 1
         ]
+        flags_array = [
+            key
+            for key, value in inputs.items()
+            if key != "project" and len(key) == 1 and value is True
+        ]
+        pc["list"][0]["flags"] = ",".join(flags_array)
         pc["list"][0]["inputs"] = inputs_array
 
     return pc
