@@ -50,7 +50,7 @@ def _transform_to_actinia_process_chain(
     inputs_array = [
         {"param": key, "value": value}
         for key, value in inputs.items()
-        if key != "project"
+        if key != "project" and key != "bounding_box"
     ]
 
     return {
@@ -115,6 +115,57 @@ def _add_regionsetting_to_pc_list(
         set_region["inputs"].append({"param": "cols", "value": "1"})
     pc_list.insert(0, set_region)
 
+def _add_regionsetting_via_bbox_to_pc_list(
+    process_type: str,
+    pc_list: list,
+    bounding_box: str,
+):
+    """Add region setting via bbox to process chain list."""
+    set_region = {
+        "id": "g_region_1",
+        "module": "g.region",
+        "inputs": [
+            {
+                "param": "w",
+                "value": bounding_box[0],
+            },
+            {
+                "param": "s",
+                "value": bounding_box[1],
+            },
+            {
+                "param": "e",
+                "value": bounding_box[2],
+            },
+            {
+                "param": "n",
+                "value": bounding_box[3],
+            },
+        ],
+    }
+    if process_type == "vector":
+        set_region["inputs"].append({"param": "cols", "value": "1"})
+    pc_list.insert(0, set_region)
+
+def _add_vclip_to_pc_list(pc_list, input_map):
+    v_clip = {
+        "id": "v_clip_1",
+        "module": "v.clip",
+        "flags": "r",
+        "inputs": [
+            {
+                "param": "input",
+                "value": input_map,
+            },
+        ],
+        "output": [
+            {
+                "param": "output",
+                "value": f"{input_map}_region_clip",
+            },
+        ],
+    }
+    pc_list.append(v_clip)
 
 def post_process_execution(
     process_id: str | None = None,
@@ -158,12 +209,41 @@ def post_process_execution(
 
     pc = _transform_to_actinia_process_chain(process_id, postbody)
 
+    # adjust pc if bounding box is given as input
+    # if postbody.get("inputs").get("bounding_box"):
+    #     bounding_box = postbody.get("inputs").get("bounding_box").get("bbox")
+        # pc["list"][0]["inputs"].insert(
+        #     0,
+        #     {
+        #         "id": "g_region_bbox",
+        #         "module": "g.region",
+        #         "inputs": [
+        #             {
+        #                 "param": "w",
+        #                 "value": bounding_box[0],
+        #             },
+        #             {
+        #                 "param": "s",
+        #                 "value": bounding_box[1],
+        #             },
+        #             {
+        #                 "param": "e",
+        #                 "value": bounding_box[2],
+        #             },
+        #             {
+        #                 "param": "n",
+        #                 "value": bounding_box[3],
+        #             },
+        #         ],
+        #     },
+        # )
+
     # adjust pc if process is grass module
     module_info = resp.json()
     if "grass-module" in module_info["categories"]:
         # get GRASS processing type
         process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
-        # check if module hast input/map parameter
+        # check if module has input/map parameter
         has_input = any(
             param.get("name") in {"input", "map"}
             for param in module_info.get("parameters", [])
@@ -187,9 +267,19 @@ def post_process_execution(
             for param in process["inputs"]
             if param["param"] in {"input", "map"}
         )
-        _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
+        if postbody.get("inputs").get("bounding_box"):
+            bounding_box = postbody.get("inputs").get("bounding_box").get("bbox")
+            # TODO: check for valid bbox values?/get error?
+            _add_regionsetting_via_bbox_to_pc_list(process_type, pc_list, bounding_box)
+            if process_type == "vector":
+                _add_vclip_to_pc_list(pc_list, input_map)
+        else:
+            _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
         # add exporter
         _add_exporter_to_pc_list(process_type, pc_list, process, input_map)
+    else:
+        if postbody.get("inputs").get("bounding_box"):
+            bounding_box = postbody.get("inputs").get("bounding_box").get("bbox")
 
     # Start process via actinia-module-plugin
     kwargs["json"] = pc
