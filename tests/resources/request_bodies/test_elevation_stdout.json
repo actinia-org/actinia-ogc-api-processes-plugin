@@ -1,0 +1,11 @@
+{
+  "inputs": {
+      "datatype": ["vector"]
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}

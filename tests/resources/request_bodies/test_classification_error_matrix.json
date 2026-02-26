@@ -1,0 +1,11 @@
+{
+  "inputs": {
+      "class_num": "10"
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}
