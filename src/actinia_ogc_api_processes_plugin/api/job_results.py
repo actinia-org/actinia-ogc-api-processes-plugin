@@ -14,7 +14,6 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 import re
-
 from email.mime.multipart import MIMEMultipart
 
 from flask import jsonify, make_response, request
