@@ -11,6 +11,8 @@ __author__ = "Carmen Tawalika"
 __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
+import re
+
 import requests
 from flask import request
 from requests.auth import HTTPBasicAuth
@@ -54,9 +56,10 @@ def cancel_actinia_job(job_id):
 
 def add_actinia_logs(status_info, data):
     """Add a link to the actinia job log to the given status_info dict."""
-    actinia_log_url = data["urls"]["status"].replace(
-        r"https?://[^/]+/api/v\d+",
+    actinia_log_url = re.sub(
+        r"https?:\/\/(.*?)\/api\/v\d+",
         ACTINIA.user_actinia_base_url,
+        data["urls"]["status"],
     )
     if "links" not in status_info:
         status_info["links"] = list()
