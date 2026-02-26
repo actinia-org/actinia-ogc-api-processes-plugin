@@ -67,11 +67,7 @@ def update_resp(resp_json: dict) -> dict:
             continue
         # keep parameter fields but remove the redundant 'name' field
         value = {k: v for k, v in p.items() if k != "name"}
-        if (
-            "schema" in value
-            and "subtype" in value["schema"]
-            and value["schema"]["subtype"] == "datasource"
-        ):
+        if "schema" in value:
             value["schema"].pop("subtype", None)
         inputs[name] = value
     resp_json["inputs"] = inputs
