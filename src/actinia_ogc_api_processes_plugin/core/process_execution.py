@@ -47,22 +47,24 @@ def _transform_to_actinia_process_chain(
 ) -> dict:
     """Transform execute postbody to actinia process chain format."""
     inputs = execute_request.get("inputs", [])
-    inputs_array = [
-        {"param": key, "value": value}
-        for key, value in inputs.items()
-        if key != "project"
-    ]
-
-    return {
+    pc = {
         "list": [
             {
                 "id": f"{process_id}_1",
                 "module": process_id,
-                "inputs": inputs_array,
             },
         ],
         "version": "1",
     }
+    if inputs:
+        inputs_array = [
+            {"param": key, "value": value}
+            for key, value in inputs.items()
+            if key != "project"
+        ]
+        pc["list"][0]["inputs"] = inputs_array
+
+    return pc
 
 
 def _add_exporter_to_pc_list(
@@ -116,6 +118,74 @@ def _add_regionsetting_to_pc_list(
     pc_list.insert(0, set_region)
 
 
+# ruff: noqa: PLR0912, PLR0914,
+def _invalid_inputs(module_info: dict, inputs: dict):
+    """Check if given inputs are valid."""
+    """
+    Validate provided `inputs` against `module_info` parameters.
+
+    Returns a list of input names that are invalid either because they are
+    unknown for the module or because their value does not match the
+    declared schema `type`.
+    """
+    params = module_info.get("parameters", [])
+    params += module_info.get("returns", [])
+    params.append({"name": "project", "schema": {"type": "string"}})
+    param_map = {
+        p.get("name"): p
+        for p in params
+        if isinstance(p, dict) and p.get("name")
+    }
+
+    invalid = []
+    msg = ""
+    if not inputs:
+        return invalid, msg
+
+    for key, val in inputs.items():
+        if key not in param_map:
+            invalid.append(key)
+            continue
+
+        schema = (
+            param_map[key].get("schema", {})
+            if isinstance(param_map[key], dict)
+            else {}
+        )
+        expected = schema.get("type")
+
+        # if no explicit type in schema, accept the input
+        if not expected:
+            continue
+
+        if expected == "string":
+            if not isinstance(val, str):
+                invalid.append(key)
+        elif expected == "boolean":
+            if not isinstance(val, bool):
+                invalid.append(key)
+        elif expected == "integer":
+            if not (isinstance(val, int) and not isinstance(val, bool)):
+                invalid.append(key)
+        elif expected == "number":
+            if not isinstance(val, (int, float)) and not isinstance(val, bool):
+                invalid.append(key)
+        elif expected == "array":
+            if not isinstance(val, list):
+                invalid.append(key)
+        else:
+            # Unknown/unsupported schema type: be permissive and accept
+            continue
+
+        if key in invalid:
+            msg += (
+                f"Input parameter '{key}' should be {expected},"
+                f" but got {type(val).__name__}."
+            )
+
+    return invalid, msg
+
+
 def post_process_execution(
     process_id: str | None = None,
     postbody: str | None = None,
@@ -134,26 +204,23 @@ def post_process_execution(
     if resp.status_code != 200:
         return resp
 
-    # Check if input values as array,
-    # if defined as array within process description.
-    for params in resp.json()["parameters"]:
-        if params["schema"]["type"] == "array":
-            input_value = postbody.get("inputs", {}).get(params["name"])
-            if input_value and not isinstance(input_value, list):
-                msg = (
-                    f"Input parameter '{params['name']}' should be an array,"
-                    f" but got {type(input_value).__name__}."
-                )
-                res = jsonify(
-                    SimpleStatusCodeResponseModel(
-                        status=400,
-                        message=msg,
-                    ),
-                )
-                return make_response(res, 400)
+    invalid_inputs, detail_msg = _invalid_inputs(
+        resp.json(),
+        postbody.get("inputs", {}),
+    )
+    if invalid_inputs:
+        invalid_inp_str = ", ".join(str(x) for x in invalid_inputs)
+        msg = f"Invalid input <{invalid_inp_str}> for process <{process_id}>."
+        res = jsonify(
+            SimpleStatusCodeResponseModel(
+                status=400,
+                message=(msg + " " + detail_msg),
+            ),
+        )
+        return make_response(res, 400)
 
     project_name = ACTINIA.default_project
-    if postbody.get("inputs").get("project"):
+    if postbody.get("inputs") and postbody.get("inputs").get("project"):
         project_name = postbody.get("inputs").get("project")
 
     pc = _transform_to_actinia_process_chain(process_id, postbody)

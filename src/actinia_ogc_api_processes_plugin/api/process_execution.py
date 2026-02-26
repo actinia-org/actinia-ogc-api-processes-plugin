@@ -47,7 +47,9 @@ class ProcessExecution(Resource):
                 job_id, status_info = safe_parse_actinia_job(resp.json())
                 if job_id not in status_info.get("links"):
                     status_info["links"] = generate_new_joblinks(job_id)
-                return make_response(status_info, 201)
+                response = make_response(jsonify(status_info), 201)
+                response.headers["Location"] = status_info["links"][0]["href"]
+                return response
             elif resp.status_code == 401:
                 log.error("ERROR: Unauthorized Access")
                 log.debug(f"actinia response: {resp.text}")

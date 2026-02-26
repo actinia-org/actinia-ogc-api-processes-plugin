@@ -21,7 +21,7 @@ test_v_buffer = {
         "type": ["vector"],
         "output": "boundary_county_1_buf",
         "cats": "1",
-        "distance": "2",
+        "distance": 2,
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",
@@ -33,7 +33,7 @@ test_v_buffer_array_error = {
         "output": "boundary_county_1_buf",
         "type": "vector",
         "cats": "1",
-        "distance": "2",
+        "distance": 2,
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",
@@ -42,7 +42,7 @@ test_v_buffer_array_error = {
 test_r_neighbors = {
     "inputs": {
         "input": "elevation",
-        "size": "3",
+        "size": 3,
         "method": ["maximum"],
         "output": ["elevation_n3_max"],
     },
@@ -127,9 +127,7 @@ class ProcessExecutionGrassModule(TestCase):
         )
         assert isinstance(resp, Response)
         assert resp.status_code == 400
-        assert (
-            "Input parameter 'type' should be an array" in resp.json["message"]
-        )
+        assert "Input parameter 'type' should be array" in resp.json["message"]
 
     @pytest.mark.integrationtest
     def test_post_process_execution_rneighbors(self) -> None:

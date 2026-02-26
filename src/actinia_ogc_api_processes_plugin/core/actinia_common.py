@@ -180,7 +180,13 @@ def parse_actinia_job(job_id, data):
 
     links = data.get("links")
     if not links:
-        links = [{"href": request.url, "rel": "self"}]
+        links = [
+            {"href": request.url, "rel": "self"},
+            {
+                "href": f"{request.url}/results",
+                "rel": "http://www.opengis.net/def/rel/ogc/1.0/results",
+            },
+        ]
     status_info["links"] = links
 
     return status_info
