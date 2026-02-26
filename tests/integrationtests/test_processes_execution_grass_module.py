@@ -69,6 +69,7 @@ test_v_overlay = {
     "response": "document",
 }
 
+
 class ProcessExecutionGrassModule(TestCase):
     """Test class for executing Processes with GRASS modules.
 
@@ -126,9 +127,7 @@ class ProcessExecutionGrassModule(TestCase):
         )
         assert isinstance(resp, Response)
         assert resp.status_code == 400
-        assert (
-            "Input parameter 'type' should be array" in resp.json["message"]
-        )
+        assert "Input parameter 'type' should be array" in resp.json["message"]
 
     @pytest.mark.integrationtest
     def test_post_process_execution_rneighbors(self) -> None:
