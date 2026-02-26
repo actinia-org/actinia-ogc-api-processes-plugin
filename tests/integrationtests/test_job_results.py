@@ -54,7 +54,7 @@ class JobResultsTest(TestCase):
         resp = self.app.get(
             (
                 f"/jobs/{job_id_export_and_stdout}/results?"
-                "resultResponse=document&"
+                "resultResponse=document"
             ),
             headers=self.HEADER_AUTH,
         )
@@ -63,6 +63,9 @@ class JobResultsTest(TestCase):
         assert hasattr(resp, "json")
         resp_keys = list(resp.json.keys())
         resp_values = list(resp.json.values())
+        # check if actinia logs present
+        assert "log" in resp_keys
+        assert "resource_id" in resp.json["log"]
         # check exemplary exported output: gpkg as zip with href link
         assert resp_keys[0] == "exporter_1_hospitals_cumberland_vector_GPKG"
         assert "href" in resp_values[0]
@@ -76,10 +79,7 @@ class JobResultsTest(TestCase):
         (value with $file::unique_id)
         """
         resp = self.app.get(
-            (
-                f"/jobs/{job_id_file_export}/results?"
-                "resultResponse=document&"
-            ),
+            f"/jobs/{job_id_file_export}/results?resultResponse=document",
             headers=self.HEADER_AUTH,
         )
         assert isinstance(resp, Response)
@@ -311,6 +311,9 @@ class JobResultsTest(TestCase):
         assert hasattr(resp, "json")
         assert "type" in resp.json
         assert resp.json["type"] == "AsyncProcessError"
+        assert "detail" in resp.json
+        assert "log" in resp.json["detail"]
+        assert "resource_id" in resp.json["detail"]
 
     @pytest.mark.integrationtest
     def test_get_job_results_missing_auth(self) -> None:

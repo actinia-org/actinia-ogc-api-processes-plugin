@@ -129,6 +129,7 @@ def _invalid_inputs(module_info: dict, inputs: dict):
     declared schema `type`.
     """
     params = module_info.get("parameters", [])
+    params += module_info.get("returns", [])
     params.append({"name": "project", "schema": {"type": "string"}})
     param_map = {
         p.get("name"): p
@@ -137,8 +138,9 @@ def _invalid_inputs(module_info: dict, inputs: dict):
     }
 
     invalid = []
+    msg = ""
     if not inputs:
-        return invalid
+        return invalid, msg
 
     for key, val in inputs.items():
         if key not in param_map:
@@ -175,7 +177,13 @@ def _invalid_inputs(module_info: dict, inputs: dict):
             # Unknown/unsupported schema type: be permissive and accept
             continue
 
-    return invalid
+        if key in invalid:
+            msg += (
+                f"Input parameter '{key}' should be {expected},"
+                f" but got {type(val).__name__}."
+            )
+
+    return invalid, msg
 
 
 def post_process_execution(
@@ -196,14 +204,17 @@ def post_process_execution(
     if resp.status_code != 200:
         return resp
 
-    invalid_inputs = _invalid_inputs(resp.json(), postbody.get("inputs", {}))
+    invalid_inputs, detail_msg = _invalid_inputs(
+        resp.json(),
+        postbody.get("inputs", {}),
+    )
     if invalid_inputs:
         invalid_inp_str = ", ".join(str(x) for x in invalid_inputs)
         msg = f"Invalid input <{invalid_inp_str}> for process <{process_id}>."
         res = jsonify(
             SimpleStatusCodeResponseModel(
                 status=400,
-                message=msg,
+                message=(msg + " " + detail_msg),
             ),
         )
         return make_response(res, 400)

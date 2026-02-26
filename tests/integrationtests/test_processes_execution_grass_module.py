@@ -18,7 +18,20 @@ from tests.testsuite import TestCase
 test_v_buffer = {
     "inputs": {
         "input": "boundary_county",
+        "type": ["vector"],
         "output": "boundary_county_1_buf",
+        "cats": "1",
+        "distance": "2",
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document",
+}
+
+test_v_buffer_array_error = {
+    "inputs": {
+        "input": "boundary_county",
+        "output": "boundary_county_1_buf",
+        "type": "vector",
         "cats": "1",
         "distance": "2",
     },
@@ -30,8 +43,8 @@ test_r_neighbors = {
     "inputs": {
         "input": "elevation",
         "size": "3",
-        "method": "maximum",
-        "output": "elevation_n3_max",
+        "method": ["maximum"],
+        "output": ["elevation_n3_max"],
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",
@@ -39,7 +52,7 @@ test_r_neighbors = {
 
 test_g_region = {
     "inputs": {
-        "raster": "elevation",
+        "raster": ["elevation"],
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",
@@ -99,6 +112,24 @@ class ProcessExecutionGrassModule(TestCase):
             assert any(
                 "/jobs/" in link.get("href", "") for link in resp.json["links"]
             )
+
+    @pytest.mark.integrationtest
+    def test_post_process_execution_vbuffer_array_error(self) -> None:
+        """Test post method of the /processes/<process_id>/execution endpoint.
+
+        Bad request query: v.buffer 'type' as string instead of array
+        (defined as array within process description)
+        """
+        resp = self.app.post(
+            "/processes/v.buffer/execution",
+            headers=self.HEADER_AUTH,
+            json=test_v_buffer_array_error,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 400
+        assert (
+            "Input parameter 'type' should be an array" in resp.json["message"]
+        )
 
     @pytest.mark.integrationtest
     def test_post_process_execution_rneighbors(self) -> None:

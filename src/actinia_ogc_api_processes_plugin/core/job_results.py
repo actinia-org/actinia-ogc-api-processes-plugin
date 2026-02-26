@@ -217,13 +217,6 @@ def get_results(resp):
     #       If persisent information from processing start given
     #       -> set as output defined there
 
-    # TODO: separate PR:
-    #       add key "log" as last element of result_format
-    #       with link to complete actinia response (data["urls"]["status"])
-    #       replace with ACTINIA.user_actinia_base_url
-    #       Note: check what to return,
-    #             depent on transmission_mode/result_response, e.g. not for raw
-
     return result_format, stdout_dict, export_out_dict
 
 
