@@ -35,6 +35,21 @@ GRASS_MODULE_TYPE = {
     "v": "vector",
 }
 
+RASTER_SUFFIXES = {
+    ".tif",
+    ".tiff",
+    ".jp2",
+    ".vrt",
+    ".zip",
+}
+VECTOR_SUFFIXES = {
+    ".geojson",
+    ".gpkg",
+    ".json",
+    ".gml",
+    ".zip",
+}
+
 
 def generate_new_joblinks(job_id: str) -> list[dict]:
     """Make sure job_id is in the link."""
@@ -230,38 +245,11 @@ def _invalid_inputs(module_info: dict, inputs: dict):
             continue
 
         if expected == "string":
-            # for raster/ vector type, accept links
-            if subtype in {"raster", "vector"}:
-                if isinstance(val, dict) and "href" in val:
-                    val["subtype"] = subtype
-                    path = Path(val["href"])
-                    suffix = path.suffix.lower()
-                    if subtype == "raster" and suffix not in {
-                        ".tif",
-                        ".tiff",
-                        ".jp2",
-                        ".vrt",
-                        ".zip",
-                    }:
-                        msg_append += (
-                            f"Input parameter '{key}' has subtype 'raster' but"
-                            f" file suffix '{suffix}' is not supported."
-                        )
-                        invalid.append(key)
-                    elif subtype == "vector" and suffix not in {
-                        ".geojson",
-                        ".gpkg",
-                        ".json",
-                        ".gml",
-                        ".zip",
-                    }:
-                        msg_append += (
-                            f"Input parameter '{key}' has subtype 'vector' but"
-                            f" file suffix '{suffix}' is not supported."
-                        )
-                        invalid.append(key)
-                elif not isinstance(val, str):
-                    invalid.append(key)
+            # for raster (cell) / vector type, accept links
+            if subtype in {"cell", "vector"}:
+                msg_append += _validate_string_input(
+                    invalid, key, val, subtype,
+                )
             elif not isinstance(val, str):
                 invalid.append(key)
         elif expected == "boolean":
@@ -305,9 +293,40 @@ def _invalid_inputs(module_info: dict, inputs: dict):
     return invalid, msg
 
 
+def _validate_string_input(
+    invalid: list,
+    key: str,
+    val: str | dict,
+    subtype: str,
+) -> str:
+    """Validate string input, which can be a link for raster/ vector type."""
+    if isinstance(val, dict) and "href" in val:
+        msg_append = ""
+        val["subtype"] = "raster" if subtype == "cell" else "vector"
+        path = Path(val["href"])
+        suffix = path.suffix.lower()
+        if subtype == "cell" and suffix not in RASTER_SUFFIXES:
+            msg_append = (
+                f"Raster input parameter '{key}' has suffix "
+                f"'{suffix}' which is not supported."
+            )
+            invalid.append(key)
+        elif subtype == "vector" and suffix not in VECTOR_SUFFIXES:
+            msg_append = (
+                f"Vector input parameter '{key}' has suffix "
+                f"'{suffix}' which is not supported."
+            )
+            invalid.append(key)
+    elif not isinstance(val, str):
+        invalid.append(key)
+    return msg_append
+
+
 def _check_input_by_reference(postbody: dict) -> dict:
-    """Check if input is by reference and adjust postbody and return
-    importer.
+    """Check for input by reference.
+
+    If input by reference is used the postbody is adjusted and the generated
+    importer is returned. If no input by reference used, None is returned.
     """
     inputs = postbody.get("inputs", {})
     importer = {
@@ -374,6 +393,8 @@ def post_process_execution(
 
     # check for input by reference and create importer
     importer = _check_input_by_reference(postbody)
+
+    # transform postbody to actinia process chain format
     pc = _transform_to_actinia_process_chain(process_id, postbody)
 
     # adjust pc if process is grass module

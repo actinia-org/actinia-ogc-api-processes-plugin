@@ -87,3 +87,21 @@ curl -X POST \
     -u ${AUTH} \
     -d @test_v_buffer_by_reference.json ${BASEURL}/processes/v.buffer/execution
 ```
+
+Example vector clipping with **input by reference**:
+
+```bash
+curl -X POST \
+    -H 'Content-Type: application/json' -H 'accept: application/json' \
+    -u ${AUTH} \
+    -d @test_v_clip_by_reference.json ${BASEURL}/processes/v.clip/execution
+```
+
+Raster neighbor hood example with **input by reference**:
+
+```bash
+curl -X POST \
+    -H 'Content-Type: application/json' -H 'accept: application/json' \
+    -u ${AUTH} \
+    -d @test_r_neighbors_by_reference.json ${BASEURL}/processes/r.neighbors/execution
+```
