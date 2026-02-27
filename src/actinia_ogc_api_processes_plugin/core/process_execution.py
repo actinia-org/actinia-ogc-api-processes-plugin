@@ -12,6 +12,8 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
+from pathlib import Path
+
 import requests
 from flask import has_request_context, jsonify, make_response, request
 from requests.auth import HTTPBasicAuth
@@ -31,6 +33,21 @@ GRASS_MODULE_TYPE = {
     "r3": "3Draster",
     "t": "temporal",
     "v": "vector",
+}
+
+RASTER_SUFFIXES = {
+    ".tif",
+    ".tiff",
+    ".jp2",
+    ".vrt",
+    ".zip",
+}
+VECTOR_SUFFIXES = {
+    ".geojson",
+    ".gpkg",
+    ".json",
+    ".gml",
+    ".zip",
 }
 
 
@@ -221,13 +238,22 @@ def _invalid_inputs(module_info: dict, inputs: dict):
             else {}
         )
         expected = schema.get("type")
+        subtype = schema.get("subtype", None)
 
         # if no explicit type in schema, accept the input
         if not expected:
             continue
 
         if expected == "string":
-            if not isinstance(val, str):
+            # for raster (cell) / vector type, accept links
+            if subtype in {"cell", "vector"}:
+                msg_append += _validate_string_input(
+                    invalid,
+                    key,
+                    val,
+                    subtype,
+                )
+            elif not isinstance(val, str):
                 invalid.append(key)
         elif expected == "boolean":
             if not isinstance(val, bool):
@@ -270,6 +296,67 @@ def _invalid_inputs(module_info: dict, inputs: dict):
     return invalid, msg
 
 
+def _validate_string_input(
+    invalid: list,
+    key: str,
+    val: str | dict,
+    subtype: str,
+) -> str:
+    """Validate string input, which can be a link for raster/ vector type."""
+    msg_append = ""
+    if isinstance(val, dict) and "href" in val:
+        val["subtype"] = "raster" if subtype == "cell" else "vector"
+        path = Path(val["href"])
+        suffix = path.suffix.lower()
+        if subtype == "cell" and suffix not in RASTER_SUFFIXES:
+            msg_append += (
+                f"Raster input parameter '{key}' has suffix "
+                f"'{suffix}' which is not supported."
+            )
+            invalid.append(key)
+        elif subtype == "vector" and suffix not in VECTOR_SUFFIXES:
+            msg_append += (
+                f"Vector input parameter '{key}' has suffix "
+                f"'{suffix}' which is not supported."
+            )
+            invalid.append(key)
+    elif not isinstance(val, str):
+        invalid.append(key)
+    return msg_append
+
+
+def _check_input_by_reference(postbody: dict) -> dict:
+    """Check for input by reference.
+
+    If input by reference is used the postbody is adjusted and the generated
+    importer is returned. If no input by reference used, None is returned.
+    """
+    inputs = postbody.get("inputs", {})
+    importer = {
+        "id": "importer_1",
+        "module": "importer",
+        "inputs": [],
+    }
+    for key, value in inputs.items():
+        if isinstance(value, dict) and "href" in value:
+            # input by reference
+            importer["inputs"].append(
+                {
+                    "import_descr": {
+                        "source": value["href"],
+                        "type": value.get("subtype"),
+                    },
+                    "param": "map",
+                    "value": f"{key}_map",
+                },
+            )
+            inputs[key] = f"{key}_map"
+    if importer["inputs"]:
+        return importer
+    else:
+        return None
+
+
 def post_process_execution(
     process_id: str | None = None,
     postbody: str | None = None,
@@ -307,6 +394,10 @@ def post_process_execution(
     if postbody.get("inputs") and postbody.get("inputs").get("project"):
         project_name = postbody.get("inputs").get("project")
 
+    # check for input by reference and create importer
+    importer = _check_input_by_reference(postbody)
+
+    # transform postbody to actinia process chain format
     pc = _transform_to_actinia_process_chain(process_id, postbody)
 
     # adjust pc if process is grass module
@@ -364,6 +455,11 @@ def post_process_execution(
             pc_list,
             bounding_box,
         )
+
+    # add importer at the beginning of the process chain list if input by
+    # reference
+    if importer:
+        pc["list"].insert(0, importer)
 
     # Start process via actinia-module-plugin
     kwargs["json"] = pc

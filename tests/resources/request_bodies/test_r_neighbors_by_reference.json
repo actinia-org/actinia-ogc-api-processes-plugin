@@ -1,9 +1,11 @@
 {
   "inputs": {
-      "input": "elevation",
+      "input": {
+        "href": "https://apps.mundialis.de/workshops/osgeo_ireland2017/north_carolina/elev_state_500m.tif"
+      },
       "size": 3,
       "method": ["maximum"],
-      "output": ["elevation_n3_max"]
+      "output": ["slope_n3_max"]
   },
   "outputs": {
     "result": {

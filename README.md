@@ -74,19 +74,23 @@ You can run the tests with following setup:
 # Then start containers for testing
 docker compose -f "docker/docker-compose.yml" up -d --build
 
+# enter docker
+docker exec -it docker-actinia-ogc-api-processes-1 sh
 
 # run all tests
-docker exec -t docker-actinia-ogc-api-processes-1 make test
+make test
 
 # run only unittests
-docker exec -t docker-actinia-ogc-api-processes-1 make unittest
+make unittest
 
 # run only integrationtests
-docker exec -t docker-actinia-ogc-api-processes-1 make integrationtest
+make integrationtest
 
 # run only tests which are marked for development with the decorator '@pytest.mark.dev'
-docker exec -t docker-actinia-ogc-api-processes-1 make devtest
+make devtest
 
+# or for debugging
+pytest -m devtest --pdb
 
 # Stop containers after finishing testing
 docker compose -f "docker/docker-compose.yml" down
