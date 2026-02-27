@@ -27,7 +27,7 @@ services:
   actinia-core:
     image: mundialis/actinia:2.14.0
     volumes:
-      - ./actinia-data/resources:/actinia_core/resources
+      - ./actinia-data/resources/actinia-gdi/resource_id-8c88e3aa-3ba2-4050-9c2f-b3ad0a60f880:/actinia_core/resources/actinia-gdi/resource_id-8c88e3aa-3ba2-4050-9c2f-b3ad0a60f880:ro
     # ports:
     #  - "8088:8088"
     depends_on:

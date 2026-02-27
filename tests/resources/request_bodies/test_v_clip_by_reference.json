@@ -1,0 +1,17 @@
+{
+  "inputs": {
+      "input": {
+        "href": "https://raw.githubusercontent.com/mmacata/pagestest/refs/heads/gh-pages/kalimantan_osm_epsg4326.geojson"
+      },
+      "clip": {
+        "href": "https://raw.githubusercontent.com/mmacata/pagestest/refs/heads/gh-pages/mangkawuk_latlong_extended_s2_extent.geojson"
+      },
+      "output": "clipped_map"
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}

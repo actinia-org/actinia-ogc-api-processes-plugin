@@ -1,0 +1,16 @@
+{
+  "inputs": {
+      "input": {
+        "href": "https://raw.githubusercontent.com/mmacata/pagestest/gh-pages/pointInBonn.geojson"
+      },
+      "output": "buffered_point",
+      "distance": 20,
+      "s": true
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}

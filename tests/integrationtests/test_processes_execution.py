@@ -131,7 +131,6 @@ class ProcessExecution(TestCase):
         assert "message" in resp.json
 
     @pytest.mark.integrationtest
-    @pytest.mark.dev
     def test_post_process_execution_with_bbox_error(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
