@@ -176,7 +176,7 @@ def _add_vclip_to_pc_list(pc_list, process, input_map):
     # Rename to expected output name
     # Note: 'output_map' can be 'input_map' if no 'output' given.
     # This will be overwritten in the following step.
-    # For no ok, if in future persistent calculation added,
+    # For now ok, if in future persistent calculation added,
     # adjust cause overwrite probably not wanted.
     g_rename_v_clip_1 = {
         "id": "g_rename_v_clip_1",
