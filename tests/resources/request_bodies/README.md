@@ -61,7 +61,7 @@ curl -X POST \
     -d @test_get_county_hospitals.json ${BASEURL}/processes/get_county_hospitals/execution
 ```
 
-Simulation of a classification error matrix as example for text file export with ``:
+Simulation of a classification error matrix as example for text file export with `classification_error_matrix`:
 
 ```bash
 curl -X POST \
@@ -70,11 +70,20 @@ curl -X POST \
     -d @test_classification_error_matrix.json ${BASEURL}/processes/classification_error_matrix/execution
 ```
 
-Example actinia-module for stdout with ``:
+Example actinia-module for stdout with `elevation_stdout`:
 
 ```bash
 curl -X POST \
     -H 'Content-Type: application/json' -H 'accept: application/json' \
     -u ${AUTH} \
     -d @test_elevation_stdout.json ${BASEURL}/processes/elevation_stdout/execution
+```
+
+Example point buffering with **input by reference**:
+
+```bash
+curl -X POST \
+    -H 'Content-Type: application/json' -H 'accept: application/json' \
+    -u ${AUTH} \
+    -d @test_v_buffer_by_reference.json ${BASEURL}/processes/v.buffer/execution
 ```

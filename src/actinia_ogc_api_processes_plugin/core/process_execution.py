@@ -12,6 +12,8 @@ __copyright__ = "Copyright 2026 mundialis GmbH & Co. KG"
 __maintainer__ = "mundialis GmbH & Co. KG"
 
 
+from pathlib import Path
+
 import requests
 from flask import has_request_context, jsonify, make_response, request
 from requests.auth import HTTPBasicAuth
@@ -164,13 +166,46 @@ def _invalid_inputs(module_info: dict, inputs: dict):
             else {}
         )
         expected = schema.get("type")
+        subtype = schema.get("subtype", None)
 
         # if no explicit type in schema, accept the input
         if not expected:
             continue
 
         if expected == "string":
-            if not isinstance(val, str):
+            # for raster/ vector type, accept links
+            if subtype in {"raster", "vector"}:
+                if isinstance(val, dict) and "href" in val:
+                    val["subtype"] = subtype
+                    path = Path(val["href"])
+                    suffix = path.suffix.lower()
+                    if subtype == "raster" and suffix not in {
+                        ".tif",
+                        ".tiff",
+                        ".jp2",
+                        ".vrt",
+                        ".zip",
+                    }:
+                        msg_append += (
+                            f"Input parameter '{key}' has subtype 'raster' but"
+                            f" file suffix '{suffix}' is not supported."
+                        )
+                        invalid.append(key)
+                    elif subtype == "vector" and suffix not in {
+                        ".geojson",
+                        ".gpkg",
+                        ".json",
+                        ".gml",
+                        ".zip",
+                    }:
+                        msg_append += (
+                            f"Input parameter '{key}' has subtype 'vector' but"
+                            f" file suffix '{suffix}' is not supported."
+                        )
+                        invalid.append(key)
+                elif not isinstance(val, str):
+                    invalid.append(key)
+            elif not isinstance(val, str):
                 invalid.append(key)
         elif expected == "boolean":
             if not isinstance(val, bool):
@@ -195,6 +230,36 @@ def _invalid_inputs(module_info: dict, inputs: dict):
             )
 
     return invalid, msg
+
+
+def _check_input_by_reference(postbody: dict) -> dict:
+    """Check if input is by reference and adjust postbody and return
+    importer.
+    """
+    inputs = postbody.get("inputs", {})
+    importer = {
+        "id": "importer_1",
+        "module": "importer",
+        "inputs": [],
+    }
+    for key, value in inputs.items():
+        if isinstance(value, dict) and "href" in value:
+            # input by reference
+            importer["inputs"].append(
+                {
+                    "import_descr": {
+                        "source": value["href"],
+                        "type": value.get("subtype"),
+                    },
+                    "param": "map",
+                    "value": f"{key}_map",
+                },
+            )
+            inputs[key] = f"{key}_map"
+    if importer["inputs"]:
+        return importer
+    else:
+        return None
 
 
 def post_process_execution(
@@ -234,6 +299,8 @@ def post_process_execution(
     if postbody.get("inputs") and postbody.get("inputs").get("project"):
         project_name = postbody.get("inputs").get("project")
 
+    # check for input by reference and create importer
+    importer = _check_input_by_reference(postbody)
     pc = _transform_to_actinia_process_chain(process_id, postbody)
 
     # adjust pc if process is grass module
@@ -268,6 +335,11 @@ def post_process_execution(
         _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
         # add exporter
         _add_exporter_to_pc_list(process_type, pc_list, process, input_map)
+
+    # add importer at the beginning of the process chain list if input by
+    # reference
+    if importer:
+        pc["list"].insert(0, importer)
 
     # Start process via actinia-module-plugin
     kwargs["json"] = pc
