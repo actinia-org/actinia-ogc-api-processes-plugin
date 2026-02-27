@@ -47,7 +47,7 @@ def update_resp(resp_json: dict) -> dict:
     project_input = {
         "description": "Name of GRASS GIS project to use",
         "name": "project",
-        "optional": False,
+        "optional": True,
         "schema": {"type": "string"},
         "default": ACTINIA.default_project,
     }
@@ -67,6 +67,9 @@ def update_resp(resp_json: dict) -> dict:
             continue
         # keep parameter fields but remove the redundant 'name' field
         value = {k: v for k, v in p.items() if k != "name"}
+        optional = value.pop("optional", None)
+        if optional is False:
+            value["minOccurs"] = 1
         inputs[name] = value
     resp_json["inputs"] = inputs
 
