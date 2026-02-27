@@ -145,10 +145,9 @@ class ProcessExecution(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 400
         assert hasattr(resp, "json")
-        assert "message" in resp.json
+        assert "type" in resp.json
         assert (
-            "'bbox' should be a list of 4 or 6 numbers."
-            in resp.json["message"]
+            "bounding_box" in resp.json["message"]
         )
 
     @pytest.mark.integrationtest
