@@ -34,9 +34,7 @@ test_v_buffer_bbox = {
         "output": "boundary_county_1_buf",
         "cats": "1",
         "distance": 2,
-        "bounding_box": {
-            "bbox": [51.9, 7, 52, 7.1],
-        },
+        "bounding_box": {"bbox": [370000, 277000, 410000, 300000]},
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",

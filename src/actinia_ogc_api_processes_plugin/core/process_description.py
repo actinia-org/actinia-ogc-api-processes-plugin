@@ -51,8 +51,8 @@ def update_resp(resp_json: dict) -> dict:
     # bounding_box Input
     bounding_box_input = {
         "description": (
-            "Bounding box defining AOI for which process is executed."
-            "Note: CRS of 'bounding_box' must be same as for 'project'"
+            "Bounding box defining AOI for which process is executed. "
+            "Note: CRS of 'bounding_box' must be same as for 'project'."
         ),
         "name": "bounding_box",
         "optional": True,

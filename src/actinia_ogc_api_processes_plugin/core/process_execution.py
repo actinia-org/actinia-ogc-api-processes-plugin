@@ -123,6 +123,7 @@ def _add_regionsetting_to_pc_list(
                 "value": input_map,
             },
         ],
+        "flags": "g",
     }
     if process_type == "vector":
         set_region["inputs"].append({"param": "cols", "value": "1"})
@@ -148,8 +149,15 @@ def _add_regionsetting_via_bbox_to_pc_list(
     pc_list.insert(0, set_region)
 
 
-def _add_vclip_to_pc_list(pc_list, input_map):
-    # TODO: error if map empty? -> or earlier: bbox out of input map extent?
+def _add_vclip_to_pc_list(pc_list, process, input_map):
+    """Add clipping of vector results to process chain list."""
+    out_maps = [
+        param["value"]
+        for param in process["inputs"]
+        if param["param"] == "output"
+    ]
+    output_map = out_maps[0] if out_maps else input_map
+    output_map_clipped = f"{output_map}_region_clip"
     v_clip = {
         "id": "v_clip_1",
         "module": "v.clip",
@@ -157,15 +165,31 @@ def _add_vclip_to_pc_list(pc_list, input_map):
         "inputs": [
             {
                 "param": "input",
-                "value": input_map,
+                "value": output_map,
             },
             {
                 "param": "output",
-                "value": f"{input_map}_region_clip",
+                "value": output_map_clipped,
+            },
+        ],
+    }
+    # Rename to expected output name
+    # Note: 'output_map' can be 'input_map' if no 'output' given.
+    # This will be overwritten in the following step.
+    # For no ok, if in future persistent calculation added,
+    # adjust cause overwrite probably not wanted.
+    g_rename_v_clip_1 = {
+        "id": "g_rename_v_clip_1",
+        "module": "g.rename",
+        "inputs": [
+            {
+                "param": "vector",
+                "value": f"{output_map_clipped},{output_map}",
             },
         ],
     }
     pc_list.append(v_clip)
+    pc_list.append(g_rename_v_clip_1)
 
 
 # ruff: noqa: PLR0912, PLR0914,
@@ -226,6 +250,7 @@ def _invalid_inputs(module_info: dict, inputs: dict):
             if not isinstance(val, list):
                 invalid.append(key)
         elif expected == "bbox":
+            # ruff: noqa: PLR0916
             if (
                 not isinstance(val, dict)
                 or "bbox" not in val
@@ -236,7 +261,10 @@ def _invalid_inputs(module_info: dict, inputs: dict):
                 )
             ):
                 invalid.append(key)
-                msg_append += "Check if 'bbox' is a list of 4 or 6 numbers."
+                msg_append += (
+                    "Check if 'bounding_box' is dict with key 'bbox'."
+                    "'bbox' should be a list of 4 or 6 numbers."
+                )
         else:
             # Unknown/unsupported schema type: be permissive and accept
             continue
@@ -323,12 +351,9 @@ def post_process_execution(
             bounding_box = (
                 postbody.get("inputs").get("bounding_box").get("bbox")
             )
-            _add_regionsetting_via_bbox_to_pc_list(
-                pc_list,
-                bounding_box,
-            )
+            _add_regionsetting_via_bbox_to_pc_list(pc_list, bounding_box)
             if process_type == "vector":
-                _add_vclip_to_pc_list(pc_list, input_map)
+                _add_vclip_to_pc_list(pc_list, process, input_map)
         else:
             _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
         # add exporter
@@ -339,7 +364,7 @@ def post_process_execution(
         # adjust PC list
         pc_list = pc["list"]
         # Currently always region set via bounding box (if given).
-        # If region is also set within actinia module, the region settting
+        # If region is also set within actinia module, the region setting
         # via bounding box will be "overwritten".
         # Todo: check if actinia module has already region set.
         # Note: importer hast 'extents' as parameter
