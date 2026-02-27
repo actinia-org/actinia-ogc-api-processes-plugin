@@ -192,10 +192,12 @@ class ProcessExecutionGrassModule(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 400
         assert hasattr(resp, "json")
-        assert "message" in resp.json
+        assert "detail" in resp.json
         assert (
-            resp.json["message"] == "Process execution of <g.region> not "
-            "supported."
+            resp.json["detail"] == (
+                "Missing required input parameter <format> for process "
+                "<g.region>."
+            )
         )
 
     @pytest.mark.integrationtest
