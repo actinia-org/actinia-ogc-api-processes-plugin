@@ -303,19 +303,19 @@ def _validate_string_input(
     subtype: str,
 ) -> str:
     """Validate string input, which can be a link for raster/ vector type."""
+    msg_append = ""
     if isinstance(val, dict) and "href" in val:
-        msg_append = ""
         val["subtype"] = "raster" if subtype == "cell" else "vector"
         path = Path(val["href"])
         suffix = path.suffix.lower()
         if subtype == "cell" and suffix not in RASTER_SUFFIXES:
-            msg_append = (
+            msg_append += (
                 f"Raster input parameter '{key}' has suffix "
                 f"'{suffix}' which is not supported."
             )
             invalid.append(key)
         elif subtype == "vector" and suffix not in VECTOR_SUFFIXES:
-            msg_append = (
+            msg_append += (
                 f"Vector input parameter '{key}' has suffix "
                 f"'{suffix}' which is not supported."
             )
