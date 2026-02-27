@@ -248,7 +248,10 @@ def _invalid_inputs(module_info: dict, inputs: dict):
             # for raster (cell) / vector type, accept links
             if subtype in {"cell", "vector"}:
                 msg_append += _validate_string_input(
-                    invalid, key, val, subtype,
+                    invalid,
+                    key,
+                    val,
+                    subtype,
                 )
             elif not isinstance(val, str):
                 invalid.append(key)
