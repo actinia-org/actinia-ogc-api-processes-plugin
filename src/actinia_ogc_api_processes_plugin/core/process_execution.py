@@ -149,15 +149,9 @@ def _add_regionsetting_via_bbox_to_pc_list(
     pc_list.insert(0, set_region)
 
 
-def _add_vclip_to_pc_list(pc_list, process, input_map):
-    """Add clipping of vector results to process chain list."""
-    out_maps = [
-        param["value"]
-        for param in process["inputs"]
-        if param["param"] == "output"
-    ]
-    output_map = out_maps[0] if out_maps else input_map
-    output_map_clipped = f"{output_map}_region_clip"
+def _add_vclip_to_pc_list(pc_list, input_map):
+    """Add clipping of vector input to process chain list."""
+    input_map_clipped = f"{input_map}_region_clip"
     v_clip = {
         "id": "v_clip_1",
         "module": "v.clip",
@@ -165,31 +159,29 @@ def _add_vclip_to_pc_list(pc_list, process, input_map):
         "inputs": [
             {
                 "param": "input",
-                "value": output_map,
+                "value": input_map,
             },
             {
                 "param": "output",
-                "value": output_map_clipped,
+                "value": input_map_clipped,
             },
         ],
     }
-    # Rename to expected output name
-    # Note: 'output_map' can be 'input_map' if no 'output' given.
-    # This will be overwritten in the following step.
+    # Overwrite input with clipped result.
     # For now ok, if in future persistent calculation added,
     # adjust cause overwrite probably not wanted.
-    g_rename_v_clip_1 = {
+    g_rename_v_clip = {
         "id": "g_rename_v_clip_1",
         "module": "g.rename",
         "inputs": [
             {
                 "param": "vector",
-                "value": f"{output_map_clipped},{output_map}",
+                "value": f"{input_map_clipped},{input_map}",
             },
         ],
     }
-    pc_list.append(v_clip)
-    pc_list.append(g_rename_v_clip_1)
+    pc_list.insert(1, v_clip)
+    pc_list.insert(2, g_rename_v_clip)
 
 
 # ruff: noqa: PLR0912, PLR0914,
@@ -353,7 +345,7 @@ def post_process_execution(
             )
             _add_regionsetting_via_bbox_to_pc_list(pc_list, bounding_box)
             if process_type == "vector":
-                _add_vclip_to_pc_list(pc_list, process, input_map)
+                _add_vclip_to_pc_list(pc_list, input_map)
         else:
             _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
         # add exporter
