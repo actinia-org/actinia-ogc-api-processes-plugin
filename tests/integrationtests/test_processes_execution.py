@@ -24,6 +24,26 @@ test_process_input = {
     "response": "document",
 }
 
+test_process_input_bbox = {
+    "inputs": {
+        "url_to_geojson_point": "https://raw.githubusercontent.com/"
+        "mmacata/pagestest/gh-pages/pointInBonn.geojson",
+        "bounding_box": {"bbox": [6154000, 4464000, 6183000, 4490000]},
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document",
+}
+
+test_process_input_bbox_error = {
+    "inputs": {
+        "url_to_geojson_point": "https://raw.githubusercontent.com/"
+        "mmacata/pagestest/gh-pages/pointInBonn.geojson",
+        "bounding_box": {"bbox": [6154000, 4464000]},
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document",
+}
+
 test_process_input_with_grass_project = {
     "inputs": {
         "url_to_geojson_point": "https://raw.githubusercontent.com/"
@@ -93,6 +113,43 @@ class ProcessExecution(TestCase):
         assert hasattr(resp, "json")
         assert "message" in resp.json
         assert resp.json["message"] == "Resource accepted"
+
+    @pytest.mark.integrationtest
+    def test_post_process_execution_with_bbox(self) -> None:
+        """Test post method of the /processes/<process_id>/execution endpoint.
+
+        Succesfull query with bbox
+        """
+        resp = self.app.post(
+            "/processes/point_in_polygon/execution",
+            headers=self.HEADER_AUTH,
+            json=test_process_input_bbox,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 201
+        assert hasattr(resp, "json")
+        assert "message" in resp.json
+
+    @pytest.mark.integrationtest
+    @pytest.mark.dev
+    def test_post_process_execution_with_bbox_error(self) -> None:
+        """Test post method of the /processes/<process_id>/execution endpoint.
+
+        Failing query with bbox
+        """
+        resp = self.app.post(
+            "/processes/point_in_polygon/execution",
+            headers=self.HEADER_AUTH,
+            json=test_process_input_bbox_error,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 400
+        assert hasattr(resp, "json")
+        assert "message" in resp.json
+        assert (
+            "'bbox' should be a list of 4 or 6 numbers."
+            in resp.json["message"]
+        )
 
     @pytest.mark.integrationtest
     def test_post_process_execution_invalid_process_id(self) -> None:

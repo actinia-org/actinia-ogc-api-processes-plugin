@@ -65,7 +65,7 @@ def _transform_to_actinia_process_chain(
                 ),
             }
             for key, value in inputs.items()
-            if key != "project" and len(key) > 1
+            if key not in {"project", "bounding_box"} and len(key) > 1
         ]
         flags_array = [
             key
@@ -123,10 +123,65 @@ def _add_regionsetting_to_pc_list(
                 "value": input_map,
             },
         ],
+        "flags": "g",
     }
     if process_type == "vector":
         set_region["inputs"].append({"param": "cols", "value": "1"})
     pc_list.insert(0, set_region)
+
+
+def _add_regionsetting_via_bbox_to_pc_list(
+    pc_list: list,
+    bounding_box: str,
+):
+    """Add region setting via bbox to process chain list."""
+    set_region = {
+        "id": "g_region_1",
+        "module": "g.region",
+        "inputs": [
+            {"param": "w", "value": str(bounding_box[0])},
+            {"param": "s", "value": str(bounding_box[1])},
+            {"param": "e", "value": str(bounding_box[2])},
+            {"param": "n", "value": str(bounding_box[3])},
+        ],
+        "flags": "g",
+    }
+    pc_list.insert(0, set_region)
+
+
+def _add_vclip_to_pc_list(pc_list, input_map):
+    """Add clipping of vector input to process chain list."""
+    input_map_clipped = f"{input_map}_region_clip"
+    v_clip = {
+        "id": "v_clip_1",
+        "module": "v.clip",
+        "flags": "r",
+        "inputs": [
+            {
+                "param": "input",
+                "value": input_map,
+            },
+            {
+                "param": "output",
+                "value": input_map_clipped,
+            },
+        ],
+    }
+    # Overwrite input with clipped result.
+    # For now ok, if in future persistent calculation added,
+    # adjust cause overwrite probably not wanted.
+    g_rename_v_clip = {
+        "id": "g_rename_v_clip_1",
+        "module": "g.rename",
+        "inputs": [
+            {
+                "param": "vector",
+                "value": f"{input_map_clipped},{input_map}",
+            },
+        ],
+    }
+    pc_list.insert(1, v_clip)
+    pc_list.insert(2, g_rename_v_clip)
 
 
 # ruff: noqa: PLR0912, PLR0914,
@@ -141,6 +196,7 @@ def _invalid_inputs(module_info: dict, inputs: dict):
     """
     params = module_info.get("parameters", [])
     params += module_info.get("returns", [])
+    params.append({"name": "bounding_box", "schema": {"type": "bbox"}})
     params.append({"name": "project", "schema": {"type": "string"}})
     param_map = {
         p.get("name"): p
@@ -150,6 +206,7 @@ def _invalid_inputs(module_info: dict, inputs: dict):
 
     invalid = []
     msg = ""
+    msg_append = ""
     if not inputs:
         return invalid, msg
 
@@ -184,14 +241,30 @@ def _invalid_inputs(module_info: dict, inputs: dict):
         elif expected == "array":
             if not isinstance(val, list):
                 invalid.append(key)
+        elif expected == "bbox":
+            # ruff: noqa: PLR0916
+            if (
+                not isinstance(val, dict)
+                or "bbox" not in val
+                or not isinstance(val["bbox"], list)
+                or (len(val["bbox"]) != 4 and len(val["bbox"]) != 6)
+                or not all(
+                    isinstance(coord, (int, float)) for coord in val["bbox"]
+                )
+            ):
+                invalid.append(key)
+                msg_append += (
+                    "Check if 'bounding_box' is dict with key 'bbox'."
+                    "'bbox' should be a list of 4 or 6 numbers."
+                )
         else:
             # Unknown/unsupported schema type: be permissive and accept
             continue
 
         if key in invalid:
             msg += (
-                f"Input parameter '{key}' should be {expected},"
-                f" but got {type(val).__name__}."
+                f"Input parameter '{key}' should be type {expected},"
+                f" but got {type(val).__name__}. {msg_append}"
             )
 
     return invalid, msg
@@ -241,7 +314,7 @@ def post_process_execution(
     if "grass-module" in module_info["categories"]:
         # get GRASS processing type
         process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
-        # check if module hast input/map parameter
+        # check if module has input/map parameter
         has_input = any(
             param.get("name") in {"input", "map"}
             for param in module_info.get("parameters", [])
@@ -265,9 +338,32 @@ def post_process_execution(
             for param in process["inputs"]
             if param["param"] in {"input", "map"}
         )
-        _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
+        if postbody.get("inputs").get("bounding_box"):
+            # adjust PC if bounding box given
+            bounding_box = (
+                postbody.get("inputs").get("bounding_box").get("bbox")
+            )
+            _add_regionsetting_via_bbox_to_pc_list(pc_list, bounding_box)
+            if process_type == "vector":
+                _add_vclip_to_pc_list(pc_list, input_map)
+        else:
+            _add_regionsetting_to_pc_list(process_type, pc_list, input_map)
         # add exporter
         _add_exporter_to_pc_list(process_type, pc_list, process, input_map)
+    elif postbody.get("inputs").get("bounding_box"):
+        # adjust PC if bounding box given
+        bounding_box = postbody.get("inputs").get("bounding_box").get("bbox")
+        # adjust PC list
+        pc_list = pc["list"]
+        # Currently always region set via bounding box (if given).
+        # If region is also set within actinia module, the region setting
+        # via bounding box will be "overwritten".
+        # Todo: check if actinia module has already region set.
+        # Note: importer hast 'extents' as parameter
+        _add_regionsetting_via_bbox_to_pc_list(
+            pc_list,
+            bounding_box,
+        )
 
     # Start process via actinia-module-plugin
     kwargs["json"] = pc

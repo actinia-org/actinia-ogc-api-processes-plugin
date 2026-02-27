@@ -18,10 +18,23 @@ from tests.testsuite import TestCase
 test_v_buffer = {
     "inputs": {
         "input": "boundary_county",
-        "type": ["vector"],
+        "type": ["area"],
         "output": "boundary_county_1_buf",
         "cats": "1",
         "distance": 2,
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document",
+}
+
+test_v_buffer_bbox = {
+    "inputs": {
+        "input": "boundary_county",
+        "type": ["area"],
+        "output": "boundary_county_1_buf",
+        "cats": "1",
+        "distance": 2,
+        "bounding_box": {"bbox": [370000, 277000, 410000, 300000]},
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",
@@ -31,7 +44,7 @@ test_v_buffer_array_error = {
     "inputs": {
         "input": "boundary_county",
         "output": "boundary_county_1_buf",
-        "type": "vector",
+        "type": "area",
         "cats": "1",
         "distance": 2,
     },
@@ -77,7 +90,6 @@ class ProcessExecutionGrassModule(TestCase):
     """
 
     @pytest.mark.integrationtest
-    @pytest.mark.dev
     def test_post_process_execution_vbuffer(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
@@ -114,6 +126,23 @@ class ProcessExecutionGrassModule(TestCase):
             )
 
     @pytest.mark.integrationtest
+    def test_post_process_execution_vbuffer_bbox(self) -> None:
+        """Test post method of the /processes/<process_id>/execution endpoint.
+
+        Succesfull query v.buffer process with given bounding box
+        """
+        resp = self.app.post(
+            "/processes/v.buffer/execution",
+            headers=self.HEADER_AUTH,
+            json=test_v_buffer_bbox,
+        )
+        assert isinstance(resp, Response)
+        assert resp.status_code == 201
+        assert hasattr(resp, "json")
+        assert "message" in resp.json
+        assert resp.json["message"] == "Resource accepted"
+
+    @pytest.mark.integrationtest
     def test_post_process_execution_vbuffer_array_error(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
@@ -127,7 +156,10 @@ class ProcessExecutionGrassModule(TestCase):
         )
         assert isinstance(resp, Response)
         assert resp.status_code == 400
-        assert "Input parameter 'type' should be array" in resp.json["message"]
+        assert (
+            "Input parameter 'type' should be type array"
+            in resp.json["message"]
+        )
 
     @pytest.mark.integrationtest
     def test_post_process_execution_rneighbors(self) -> None:
