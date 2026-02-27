@@ -158,7 +158,7 @@ class ProcessExecutionGrassModule(TestCase):
         assert resp.status_code == 400
         assert (
             "Input parameter 'type' should be type array"
-            in resp.json["message"]
+            in resp.json["detail"]
         )
 
     @pytest.mark.integrationtest
