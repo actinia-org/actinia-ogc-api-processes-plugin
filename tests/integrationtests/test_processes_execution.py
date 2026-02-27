@@ -146,7 +146,8 @@ class ProcessExecution(TestCase):
         assert resp.status_code == 400
         assert hasattr(resp, "json")
         assert "type" in resp.json
-        assert "bounding_box" in resp.json["message"]
+        assert "detail" in resp.json
+        assert "bounding_box" in resp.json["detail"]
 
     @pytest.mark.integrationtest
     def test_post_process_execution_invalid_process_id(self) -> None:
