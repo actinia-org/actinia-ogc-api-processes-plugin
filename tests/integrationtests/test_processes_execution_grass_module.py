@@ -193,11 +193,9 @@ class ProcessExecutionGrassModule(TestCase):
         assert resp.status_code == 400
         assert hasattr(resp, "json")
         assert "detail" in resp.json
-        assert (
-            resp.json["detail"] == (
-                "Missing required input parameter <format> for process "
-                "<g.region>."
-            )
+        assert resp.json["detail"] == (
+            "Missing required input parameter <format> for process "
+            "<g.region>."
         )
 
     @pytest.mark.integrationtest
