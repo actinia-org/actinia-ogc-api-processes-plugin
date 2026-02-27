@@ -296,6 +296,21 @@ def _invalid_inputs(module_info: dict, inputs: dict):
     return invalid, msg
 
 
+def _missing_inputs(module_info: dict, inputs: dict):
+    """Check if required inputs are missing."""
+    params = module_info.get("parameters", [])
+    params += module_info.get("returns", [])
+    required_params = {p.get("name") for p in params if not p.get("optional")}
+    return [param for param in required_params if param not in inputs]
+
+
+def is_valid_postbody(postbody: dict) -> bool:
+    """Check if postbody is valid."""
+    allowed_keys = {"inputs", "outputs", "response", "subscriber"}
+    wrong_key = any(key not in allowed_keys for key, value in postbody.items())
+    return not wrong_key
+
+
 def _validate_string_input(
     invalid: list,
     key: str,
@@ -359,9 +374,20 @@ def _check_input_by_reference(postbody: dict) -> dict:
 
 def post_process_execution(
     process_id: str | None = None,
-    postbody: str | None = None,
+    postbody: dict | None = None,
 ):
     """Start job for given process_id."""
+    if not is_valid_postbody(postbody):
+        res = jsonify(
+            {
+                "type": "InvalidRequestBody",
+                "title": "Invalid request body",
+                "status": 400,
+                "detail": "Request body contains invalid keys.",
+            },
+        )
+        return make_response(res, 400)
+
     # Authentication for actinia
     auth = request.authorization
     kwargs = dict()
@@ -383,10 +409,32 @@ def post_process_execution(
         invalid_inp_str = ", ".join(str(x) for x in invalid_inputs)
         msg = f"Invalid input <{invalid_inp_str}> for process <{process_id}>."
         res = jsonify(
-            SimpleStatusCodeResponseModel(
-                status=400,
-                message=(msg + " " + detail_msg),
-            ),
+            {
+                "type": "InvalidInput",
+                "title": "Invalid input",
+                "status": 400,
+                "detail": (msg + " " + detail_msg),
+            },
+        )
+        return make_response(res, 400)
+
+    missing_inputs = _missing_inputs(
+        resp.json(),
+        postbody.get("inputs", {}),
+    )
+    if missing_inputs:
+        missing_inputs_str = ", ".join(str(x) for x in missing_inputs)
+        msg = (
+            f"Missing required input parameter <{missing_inputs_str}> for "
+            f"process <{process_id}>."
+        )
+        res = jsonify(
+            {
+                "type": "InvalidInput",
+                "title": "Missing required input",
+                "status": 400,
+                "detail": msg,
+            },
         )
         return make_response(res, 400)
 

@@ -141,5 +141,5 @@ class ProcessExecutionInputByReference(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 400
         assert hasattr(resp, "json")
-        assert "message" in resp.json
-        assert "'.geojson' which is not supported." in resp.json["message"]
+        assert "detail" in resp.json
+        assert "'.geojson' which is not supported." in resp.json["detail"]
