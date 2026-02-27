@@ -1,0 +1,12 @@
+{
+  "inputs": {
+      "county_name": "BUNCOMBE",
+      "hospitals_within_county": "hosp_in_BUNCOMBE"
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}

@@ -1,0 +1,11 @@
+{
+  "inputs": {
+      "strds_name": "test"
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}

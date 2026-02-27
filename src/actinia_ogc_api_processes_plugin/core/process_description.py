@@ -43,7 +43,24 @@ def get_module_description(process_id):
 
 
 def update_resp(resp_json: dict) -> dict:
-    """Append GRASS GIS project to input description and jobControlOptions."""
+    """Update process description response from actinia.
+
+    Append bounding box and GRASS GIS project to input description
+    and jobControlOptions.
+    """
+    # bounding_box Input
+    bounding_box_input = {
+        "description": (
+            "Bounding box defining AOI for which process is executed. "
+            "Note: CRS of 'bounding_box' must be same as for 'project'."
+        ),
+        "name": "bounding_box",
+        "optional": True,
+        "schema": {"type": "bbox"},
+    }
+    resp_json["parameters"].append(bounding_box_input)
+
+    # procect Input
     project_input = {
         "description": "Name of GRASS GIS project to use",
         "name": "project",
@@ -67,9 +84,13 @@ def update_resp(resp_json: dict) -> dict:
             continue
         # keep parameter fields but remove the redundant 'name' field
         value = {k: v for k, v in p.items() if k != "name"}
+        # transform 'optional' to 'minOccurs
         optional = value.pop("optional", None)
         if optional is False:
             value["minOccurs"] = 1
+        # subtype not allowed in validator, removing it
+        if "schema" in value:
+            value["schema"].pop("subtype", None)
         inputs[name] = value
     resp_json["inputs"] = inputs
 

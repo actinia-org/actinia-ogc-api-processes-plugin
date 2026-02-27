@@ -1,0 +1,14 @@
+{
+  "inputs": {
+      "input": "elevation",
+      "size": "3",
+      "method": ["maximum"],
+      "output": "elevation_n3_max"
+  },
+  "outputs": {
+    "result": {
+      "transmissionMode": "reference"
+    }
+  },
+  "response": "document"
+}

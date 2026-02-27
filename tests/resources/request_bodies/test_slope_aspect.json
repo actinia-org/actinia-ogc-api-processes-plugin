@@ -1,0 +1,9 @@
+{
+    "inputs": {
+        "datatype": "FCELL",
+        "name_of_output_slope": "slope_test",
+        "name_of_output_aspect": "aspect_test"
+    },
+    "outputs": {"result": {"transmissionMode": "reference"}},
+    "response": "document"
+}
