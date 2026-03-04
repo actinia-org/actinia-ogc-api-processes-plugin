@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (c) 2018-2025 by mundialis GmbH & Co. KG
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-FROM alpine:3.22
+FROM alpine:3.23
 
 # python3 + pip3
 # hadolint ignore=DL3018
