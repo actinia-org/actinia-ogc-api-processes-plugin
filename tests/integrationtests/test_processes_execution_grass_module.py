@@ -34,7 +34,7 @@ test_v_buffer_bbox = {
         "output": "boundary_county_1_buf",
         "cats": "1",
         "distance": 2,
-        "bounding_box": {"bbox": [370000, 277000, 410000, 300000]},
+        "bounding_box": [370000, 277000, 410000, 300000],
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",
@@ -192,10 +192,9 @@ class ProcessExecutionGrassModule(TestCase):
         assert isinstance(resp, Response)
         assert resp.status_code == 400
         assert hasattr(resp, "json")
-        assert "detail" in resp.json
-        assert resp.json["detail"] == (
-            "Missing required input parameter <format> for process "
-            "<g.region>."
+        assert (
+            resp.json["message"] == "Process execution of <g.region> not "
+            "supported."
         )
 
     @pytest.mark.integrationtest

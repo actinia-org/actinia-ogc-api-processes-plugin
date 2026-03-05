@@ -28,7 +28,7 @@ test_process_input_bbox = {
     "inputs": {
         "url_to_geojson_point": "https://raw.githubusercontent.com/"
         "mmacata/pagestest/gh-pages/pointInBonn.geojson",
-        "bounding_box": {"bbox": [6154000, 4464000, 6183000, 4490000]},
+        "bounding_box": [6154000, 4464000, 6183000, 4490000],
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",
@@ -38,7 +38,7 @@ test_process_input_bbox_error = {
     "inputs": {
         "url_to_geojson_point": "https://raw.githubusercontent.com/"
         "mmacata/pagestest/gh-pages/pointInBonn.geojson",
-        "bounding_box": {"bbox": [6154000, 4464000]},
+        "bounding_box": [6154000, 4464000],
     },
     "outputs": {"result": {"transmissionMode": "reference"}},
     "response": "document",

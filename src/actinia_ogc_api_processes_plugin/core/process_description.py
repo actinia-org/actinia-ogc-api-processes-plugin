@@ -56,7 +56,12 @@ def update_resp(resp_json: dict) -> dict:
         ),
         "name": "bounding_box",
         "optional": True,
-        "schema": {"type": "bbox"},
+        "schema": {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 4,
+            "maxItems": 6,
+        },
     }
     resp_json["parameters"].append(bounding_box_input)
 

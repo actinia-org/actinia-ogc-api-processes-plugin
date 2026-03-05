@@ -213,8 +213,25 @@ def _invalid_inputs(module_info: dict, inputs: dict):
     """
     params = module_info.get("parameters", [])
     params += module_info.get("returns", [])
-    params.append({"name": "bounding_box", "schema": {"type": "bbox"}})
-    params.append({"name": "project", "schema": {"type": "string"}})
+    params.append(
+        {
+            "name": "bounding_box",
+            "schema": {
+                "type": "array",
+                "items": {"type": "number"},
+                "minItems": 4,
+                "maxItems": 6,
+            },
+            "optional": True,
+        },
+    )
+    params.append(
+        {
+            "name": "project",
+            "schema": {"type": "string"},
+            "optional": True,
+        },
+    )
     param_map = {
         p.get("name"): p
         for p in params
@@ -267,22 +284,22 @@ def _invalid_inputs(module_info: dict, inputs: dict):
         elif expected == "array":
             if not isinstance(val, list):
                 invalid.append(key)
-        elif expected == "bbox":
-            # ruff: noqa: PLR0916
+            # ruff: noqa: SIM102
+            # Use a single `if` statement instead of nested `if` statements
+            # keep for readability
             if (
-                not isinstance(val, dict)
-                or "bbox" not in val
-                or not isinstance(val["bbox"], list)
-                or (len(val["bbox"]) != 4 and len(val["bbox"]) != 6)
-                or not all(
-                    isinstance(coord, (int, float)) for coord in val["bbox"]
-                )
+                schema.get("items", {}).get("type") == "number"
+                and schema.get("minItems") == 4
+                and schema.get("maxItems") == 6
             ):
-                invalid.append(key)
-                msg_append += (
-                    "Check if 'bounding_box' is dict with key 'bbox'."
-                    "'bbox' should be a list of 4 or 6 numbers."
-                )
+                # Case for bbox type
+                if (len(val) != 4 and len(val) != 6) or not all(
+                    isinstance(item, (int, float)) for item in val
+                ):
+                    invalid.append(key)
+                    msg_append += (
+                        "Check if 'bounding_box' is list of 4 or 6 numbers."
+                    )
         else:
             # Unknown/unsupported schema type: be permissive and accept
             continue
@@ -290,7 +307,7 @@ def _invalid_inputs(module_info: dict, inputs: dict):
         if key in invalid:
             msg += (
                 f"Input parameter '{key}' should be type {expected},"
-                f" but got {type(val).__name__}. {msg_append}"
+                f" got {type(val).__name__}. {msg_append}"
             )
 
     return invalid, msg
@@ -401,8 +418,28 @@ def post_process_execution(
     if resp.status_code != 200:
         return resp
 
+    module_info = resp.json()
+
+    if "grass-module" in module_info["categories"]:
+        # get GRASS processing type
+        process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
+        # check if module has input/map parameter
+        has_input = any(
+            param.get("name") in {"input", "map"}
+            for param in module_info.get("parameters", [])
+        )
+        if not has_input or process_type not in {"raster", "vector"}:
+            msg = f"Process execution of <{process_id}> not supported."
+            res = jsonify(
+                SimpleStatusCodeResponseModel(
+                    status=400,
+                    message=msg,
+                ),
+            )
+            return make_response(res, 400)
+
     invalid_inputs, detail_msg = _invalid_inputs(
-        resp.json(),
+        module_info,
         postbody.get("inputs", {}),
     )
     if invalid_inputs:
@@ -419,7 +456,7 @@ def post_process_execution(
         return make_response(res, 400)
 
     missing_inputs = _missing_inputs(
-        resp.json(),
+        module_info,
         postbody.get("inputs", {}),
     )
     if missing_inputs:
@@ -449,25 +486,7 @@ def post_process_execution(
     pc = _transform_to_actinia_process_chain(process_id, postbody)
 
     # adjust pc if process is grass module
-    module_info = resp.json()
     if "grass-module" in module_info["categories"]:
-        # get GRASS processing type
-        process_type = GRASS_MODULE_TYPE[process_id.split(".", 1)[0]]
-        # check if module has input/map parameter
-        has_input = any(
-            param.get("name") in {"input", "map"}
-            for param in module_info.get("parameters", [])
-        )
-        if not has_input or process_type not in {"raster", "vector"}:
-            msg = f"Process execution of <{process_id}> not supported."
-            res = jsonify(
-                SimpleStatusCodeResponseModel(
-                    status=400,
-                    message=msg,
-                ),
-            )
-            return make_response(res, 400)
-
         # adjust PC list
         pc_list = pc["list"]
         process = pc_list[0]
@@ -479,9 +498,7 @@ def post_process_execution(
         )
         if postbody.get("inputs").get("bounding_box"):
             # adjust PC if bounding box given
-            bounding_box = (
-                postbody.get("inputs").get("bounding_box").get("bbox")
-            )
+            bounding_box = postbody.get("inputs").get("bounding_box")
             _add_regionsetting_via_bbox_to_pc_list(pc_list, bounding_box)
             if process_type == "vector":
                 _add_vclip_to_pc_list(pc_list, input_map)
@@ -491,7 +508,7 @@ def post_process_execution(
         _add_exporter_to_pc_list(process_type, pc_list, process, input_map)
     elif postbody.get("inputs").get("bounding_box"):
         # adjust PC if bounding box given
-        bounding_box = postbody.get("inputs").get("bounding_box").get("bbox")
+        bounding_box = postbody.get("inputs").get("bounding_box")
         # adjust PC list
         pc_list = pc["list"]
         # Currently always region set via bounding box (if given).
