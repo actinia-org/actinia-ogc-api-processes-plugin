@@ -79,6 +79,15 @@ curl -X POST \
     -d @test_elevation_stdout.json ${BASEURL}/processes/elevation_stdout/execution
 ```
 
+Example for dummy test process with `echo`:
+
+```bash
+curl -X POST \
+    -H 'Content-Type: application/json' -H 'accept: application/json' \
+    -u ${AUTH} \
+    -d @test_echo.json ${BASEURL}/processes/echo/execution
+```
+
 Example point buffering with **input by reference**:
 
 ```bash
