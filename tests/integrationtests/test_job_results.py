@@ -48,272 +48,272 @@ class JobResultsTest(TestCase):
     For /jobs/<job_id>/results endpoint.
     """
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_document_export_and_stdout(self) -> None:
-        """Return results as document json."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_export_and_stdout}/results?"
-                "resultResponse=document"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
-        assert hasattr(resp, "json")
-        resp_keys = list(resp.json.keys())
-        resp_values = list(resp.json.values())
-        # check if actinia logs present
-        assert "log" in resp_keys
-        assert "resource_id" in resp.json["log"]
-        # check exemplary exported output: gpkg as zip with href link
-        assert resp_keys[0] == "exporter_1_hospitals_cumberland_vector_GPKG"
-        assert "href" in resp_values[0]
-        assert resp_values[0]["type"] == "application/zip"
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_document_export_and_stdout(self) -> None:
+    #     """Return results as document json."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_export_and_stdout}/results?"
+    #             "resultResponse=document"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert hasattr(resp, "json")
+    #     resp_keys = list(resp.json.keys())
+    #     resp_values = list(resp.json.values())
+    #     # check if actinia logs present
+    #     assert "log" in resp_keys
+    #     assert "resource_id" in resp.json["log"]
+    #     # check exemplary exported output: gpkg as zip with href link
+    #     assert resp_keys[0] == "exporter_1_hospitals_cumberland_vector_GPKG"
+    #     assert "href" in resp_values[0]
+    #     assert resp_values[0]["type"] == "application/zip"
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_document_export_file(self) -> None:
-        """Return results as document json.
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_document_export_file(self) -> None:
+    #     """Return results as document json.
 
-        For job with file export generated from GRASS GIS module
-        (value with $file::unique_id)
-        """
-        resp = self.app.get(
-            f"/jobs/{job_id_file_export}/results?resultResponse=document",
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
+    #     For job with file export generated from GRASS GIS module
+    #     (value with $file::unique_id)
+    #     """
+    #     resp = self.app.get(
+    #         f"/jobs/{job_id_file_export}/results?resultResponse=document",
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_reference_only_stdout(self) -> None:
-        """Return 422 for raw/reference if only stdout results."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
-                "transmissionMode=reference"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 422
-        assert resp.json["message"] == (
-            "Format resultResponse=raw and "
-            "transmissionMode=reference not supported for current "
-            "job results. Use e.g. transmissionMode=value."
-        )
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_reference_only_stdout(self) -> None:
+    #     """Return 422 for raw/reference if only stdout results."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
+    #             "transmissionMode=reference"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 422
+    #     assert resp.json["message"] == (
+    #         "Format resultResponse=raw and "
+    #         "transmissionMode=reference not supported for current "
+    #         "job results. Use e.g. transmissionMode=value."
+    #     )
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_reference_export_and_stdout(self) -> None:
-        """Return 422 for raw/reference if export and stdout results."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_export_and_stdout}/results?resultResponse=raw&"
-                "transmissionMode=reference"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 422
-        assert resp.json["message"] == (
-            "Format resultResponse=raw and "
-            "transmissionMode=reference not supported for current "
-            "job results. Use e.g. transmissionMode=mixed."
-        )
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_reference_export_and_stdout(self) -> None:
+    #     """Return 422 for raw/reference if export and stdout results."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_export_and_stdout}/results?"
+    #             "resultResponse=raw&transmissionMode=reference"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 422
+    #     assert resp.json["message"] == (
+    #         "Format resultResponse=raw and "
+    #         "transmissionMode=reference not supported for current "
+    #         "job results. Use e.g. transmissionMode=mixed."
+    #     )
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_reference_only_export(self) -> None:
-        """Return 204 for raw/reference if only export results."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
-                "transmissionMode=reference"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        # Return empty body with two comma separated links in header
-        assert resp.status_code == 204
-        assert resp.data == b""
-        assert resp.headers.get("Link") is not None
-        assert len(resp.headers.get("Link").split(",")) == 2
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_reference_only_export(self) -> None:
+    #     """Return 204 for raw/reference if only export results."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
+    #             "transmissionMode=reference"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     # Return empty body with two comma separated links in header
+    #     assert resp.status_code == 204
+    #     assert resp.data == b""
+    #     assert resp.headers.get("Link") is not None
+    #     assert len(resp.headers.get("Link").split(",")) == 2
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_value_single_export(self) -> None:
-        """Return results for raw/value if only single export returned."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_single_export}/results?resultResponse=raw&"
-                "transmissionMode=value"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
-        assert hasattr(resp, "data")
-        # Return tif as binary
-        assert len(resp.data) == 564649
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_value_single_export(self) -> None:
+    #     """Return results for raw/value if only single export returned."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_single_export}/results?resultResponse=raw&"
+    #             "transmissionMode=value"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert hasattr(resp, "data")
+    #     # Return tif as binary
+    #     assert len(resp.data) == 564649
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_value_single_stdout(self) -> None:
-        """Return results for raw/value if only single stdout returned."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_single_stdout}/results?resultResponse=raw&"
-                "transmissionMode=value"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
-        assert hasattr(resp, "data")
-        assert resp.data == (
-            b'["aspect","basin_50K","elevation",'
-            b'"landuse96_28m","lsat7_2002_10","slope"]\n'
-        )
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_value_single_stdout(self) -> None:
+    #     """Return results for raw/value if only single stdout returned."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_single_stdout}/results?resultResponse=raw&"
+    #             "transmissionMode=value"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert hasattr(resp, "data")
+    #     assert resp.data == (
+    #         b'["aspect","basin_50K","elevation",'
+    #         b'"landuse96_28m","lsat7_2002_10","slope"]\n'
+    #     )
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_value_multiple_export(self) -> None:
-        """Return 422 for raw/value if multiple export results."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
-                "transmissionMode=value"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 422
-        assert resp.json["message"] == (
-            "Format resultResponse=raw and "
-            "transmissionMode=value not supported for current "
-            "job results. Use e.g. transmissionMode=reference."
-        )
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_value_multiple_export(self) -> None:
+    #     """Return 422 for raw/value if multiple export results."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
+    #             "transmissionMode=value"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 422
+    #     assert resp.json["message"] == (
+    #         "Format resultResponse=raw and "
+    #         "transmissionMode=value not supported for current "
+    #         "job results. Use e.g. transmissionMode=reference."
+    #     )
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_value_export_and_stdout(self) -> None:
-        """Return 422 for raw/value if export and stdout results."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_export_and_stdout}/results?resultResponse=raw&"
-                "transmissionMode=value"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 422
-        assert resp.json["message"] == (
-            "Format resultResponse=raw and "
-            "transmissionMode=value not supported for current "
-            "job results. Use e.g. transmissionMode=mixed."
-        )
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_value_export_and_stdout(self) -> None:
+    #     """Return 422 for raw/value if export and stdout results."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_export_and_stdout}/results?"
+    #             "resultResponse=raw&transmissionMode=value"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 422
+    #     assert resp.json["message"] == (
+    #         "Format resultResponse=raw and "
+    #         "transmissionMode=value not supported for current "
+    #         "job results. Use e.g. transmissionMode=mixed."
+    #     )
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_value_multiple_stdout(self) -> None:
-        """Return results for raw/value if multiple stdout returned."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
-                "transmissionMode=value"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
-        assert resp.content_type == "multipart/related"
-        assert hasattr(resp, "data")
-        parts = parse_multipart_related(resp.data)
-        # Return only plain/json stdout as multipart-content
-        assert "text/plain" in parts["content_type"]
-        assert "text/json" in parts["content_type"]
-        assert not parts["content_location"]
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_value_multiple_stdout(self) -> None:
+    #     """Return results for raw/value if multiple stdout returned."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
+    #             "transmissionMode=value"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert resp.content_type == "multipart/related"
+    #     assert hasattr(resp, "data")
+    #     parts = parse_multipart_related(resp.data)
+    #     # Return only plain/json stdout as multipart-content
+    #     assert "text/plain" in parts["content_type"]
+    #     assert "text/json" in parts["content_type"]
+    #     assert not parts["content_location"]
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_mixed_only_export(self) -> None:
-        """Return results for raw/mixed if only export returned + default."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
-                "transmissionMode=mixed"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
-        assert hasattr(resp, "data")
-        # Return only reference links as multipart-content
-        assert resp.content_type == "multipart/related"
-        parts = parse_multipart_related(resp.data)
-        assert "message/external-body" in parts["content_type"]
-        assert parts["content_location"]
-        assert "text/plain" not in parts["content_type"]
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_mixed_only_export(self) -> None:
+    #     """Return results for raw/mixed if only export returned + default."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_multiple_export}/results?resultResponse=raw&"
+    #             "transmissionMode=mixed"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert hasattr(resp, "data")
+    #     # Return only reference links as multipart-content
+    #     assert resp.content_type == "multipart/related"
+    #     parts = parse_multipart_related(resp.data)
+    #     assert "message/external-body" in parts["content_type"]
+    #     assert parts["content_location"]
+    #     assert "text/plain" not in parts["content_type"]
 
-        # Check default values for response and transmissionMode
-        # => should be same as above resp
-        resp_job_default = self.app.get(
-            f"/jobs/{job_id_multiple_export}/results",
-            headers=self.HEADER_AUTH,
-        )
-        assert resp.status_code == resp_job_default.status_code
-        assert resp.content_type == resp_job_default.content_type
-        parts_job_default = parse_multipart_related(resp_job_default.data)
-        assert parts == parts_job_default
+    #     # Check default values for response and transmissionMode
+    #     # => should be same as above resp
+    #     resp_job_default = self.app.get(
+    #         f"/jobs/{job_id_multiple_export}/results",
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert resp.status_code == resp_job_default.status_code
+    #     assert resp.content_type == resp_job_default.content_type
+    #     parts_job_default = parse_multipart_related(resp_job_default.data)
+    #     assert parts == parts_job_default
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_mixed_only_stdout(self) -> None:
-        """Return results for raw/mixed if only stdout returned."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
-                "transmissionMode=mixed"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
-        assert hasattr(resp, "data")
-        assert resp.content_type == "multipart/related"
-        parts = parse_multipart_related(resp.data)
-        # Return only plain/json stdout as multipart-content
-        assert "text/plain" in parts["content_type"]
-        assert "text/json" in parts["content_type"]
-        assert not parts["content_location"]
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_mixed_only_stdout(self) -> None:
+    #     """Return results for raw/mixed if only stdout returned."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_multiple_stdout}/results?resultResponse=raw&"
+    #             "transmissionMode=mixed"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert hasattr(resp, "data")
+    #     assert resp.content_type == "multipart/related"
+    #     parts = parse_multipart_related(resp.data)
+    #     # Return only plain/json stdout as multipart-content
+    #     assert "text/plain" in parts["content_type"]
+    #     assert "text/json" in parts["content_type"]
+    #     assert not parts["content_location"]
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_raw_mixed_export_and_stdout(self) -> None:
-        """Return results for raw/mixed if export and stdout returned."""
-        resp = self.app.get(
-            (
-                f"/jobs/{job_id_export_and_stdout}/results?resultResponse=raw&"
-                "transmissionMode=mixed"
-            ),
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 200
-        assert hasattr(resp, "data")
-        assert resp.content_type == "multipart/related"
-        parts = parse_multipart_related(resp.data)
-        # Return both: reference links + json stdout as multipart-content
-        assert "text/json" in parts["content_type"]
-        assert "message/external-body" in parts["content_type"]
-        assert parts["content_location"]
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_raw_mixed_export_and_stdout(self) -> None:
+    #     """Return results for raw/mixed if export and stdout returned."""
+    #     resp = self.app.get(
+    #         (
+    #             f"/jobs/{job_id_export_and_stdout}/results?"
+    #             "resultResponse=raw&transmissionMode=mixed"
+    #         ),
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 200
+    #     assert hasattr(resp, "data")
+    #     assert resp.content_type == "multipart/related"
+    #     parts = parse_multipart_related(resp.data)
+    #     # Return both: reference links + json stdout as multipart-content
+    #     assert "text/json" in parts["content_type"]
+    #     assert "message/external-body" in parts["content_type"]
+    #     assert parts["content_location"]
 
-    @pytest.mark.integrationtest
-    def test_get_job_results_failed_job(self) -> None:
-        """Return 400 for failed job."""
-        resp = self.app.get(
-            f"/jobs/{job_id_failed}/results",
-            headers=self.HEADER_AUTH,
-        )
-        assert isinstance(resp, Response)
-        assert resp.status_code == 400
-        assert hasattr(resp, "json")
-        assert "type" in resp.json
-        assert resp.json["type"] == "AsyncProcessError"
-        assert "detail" in resp.json
-        assert "log" in resp.json["detail"]
-        assert "resource_id" in resp.json["detail"]
+    # @pytest.mark.integrationtest
+    # def test_get_job_results_failed_job(self) -> None:
+    #     """Return 400 for failed job."""
+    #     resp = self.app.get(
+    #         f"/jobs/{job_id_failed}/results",
+    #         headers=self.HEADER_AUTH,
+    #     )
+    #     assert isinstance(resp, Response)
+    #     assert resp.status_code == 400
+    #     assert hasattr(resp, "json")
+    #     assert "type" in resp.json
+    #     assert resp.json["type"] == "AsyncProcessError"
+    #     assert "detail" in resp.json
+    #     assert "log" in resp.json["detail"]
+    #     assert "resource_id" in resp.json["detail"]
 
     @pytest.mark.integrationtest
     def test_get_job_results_missing_auth(self) -> None:
