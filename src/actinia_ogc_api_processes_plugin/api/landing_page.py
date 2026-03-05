@@ -51,7 +51,7 @@ class LandingPage(Resource):
                 "href": f"{base}/api",
                 "rel": "service-doc",
                 "type": "application/json",
-                "title": "API documentation (human-readable)",
+                "title": "API documentation",
             },
             {
                 "href": f"{base}/conformance",
