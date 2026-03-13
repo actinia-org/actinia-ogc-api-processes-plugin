@@ -43,7 +43,7 @@ class ProcessExecutionInputByReference(TestCase):
     def test_post_process_execution_vbuffer(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query v.buffer process
+        Successful query v.buffer process
         """
         json_path = (
             "tests/resources/request_bodies/test_v_buffer_by_reference.json"
@@ -85,7 +85,7 @@ class ProcessExecutionInputByReference(TestCase):
     def test_post_process_execution_rneighbors(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query r.neighbors process with input by reference
+        Successful query r.neighbors process with input by reference
         """
         json_path = (
             "tests/resources/request_bodies/test_r_neighbors_by_reference.json"
@@ -108,7 +108,7 @@ class ProcessExecutionInputByReference(TestCase):
     def test_post_process_execution_vclip(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query v.clip process with input by reference
+        Successful query v.clip process with input by reference
         """
         json_path = (
             "tests/resources/request_bodies/test_v_clip_by_reference.json"

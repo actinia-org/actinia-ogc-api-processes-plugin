@@ -52,7 +52,7 @@ curl -X POST \
     -d @test_strds_create_and_export.json ${BASEURL}/processes/strds_create_and_export/execution
 ```
 
-Extracts all hospitals in one county and export the resulting vector; additional process_results is a stdout-json with adresses with `get_county_hospitals`:
+Extracts all hospitals in one county and export the resulting vector; additional process_results is a stdout-json with addresses with `get_county_hospitals`:
 
 ```bash
 curl -X POST \

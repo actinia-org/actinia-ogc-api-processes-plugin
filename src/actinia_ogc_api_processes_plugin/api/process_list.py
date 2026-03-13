@@ -93,7 +93,7 @@ class ProcessList(Resource):
                 )
                 return make_response(res, 500)
         except ConnectionError as e:
-            log.error(f"Connection ERRO: {e}")
+            log.error(f"Connection ERROR: {e}")
             res = jsonify(
                 SimpleStatusCodeResponseModel(
                     status=503,

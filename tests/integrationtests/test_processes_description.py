@@ -26,7 +26,7 @@ class ProcessesDescriptionTest(TestCase):
     def test_get_processes(self) -> None:
         """Test the get method of the /processes/<process_id> endpoint.
 
-        Succesfull query
+        Successful query
         """
         resp = self.app.get("/processes/g.region", headers=self.HEADER_AUTH)
         assert isinstance(

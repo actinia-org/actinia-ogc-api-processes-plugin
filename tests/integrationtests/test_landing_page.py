@@ -25,7 +25,7 @@ class LandingPageTest(TestCase):
     def test_get_landing_page(self) -> None:
         """Test the get method of the / endpoint.
 
-        Succesfull query
+        Successful query
         """
         resp = self.app.get("/")
         assert isinstance(

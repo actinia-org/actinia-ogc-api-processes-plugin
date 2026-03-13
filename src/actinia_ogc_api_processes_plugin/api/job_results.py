@@ -76,11 +76,11 @@ class JobResults(Resource):
             transmission_mode = request.args.get("transmissionMode") or "mixed"
             # transmissionMode = mixed
             # - originally:
-            #   if mutliple outputs with different transmission modes requested
+            #   if multiple outputs with different transmission modes requested
             # - for actinia:
             #   automatically given if stdout (value) and
             #   exported results (reference) returned from
-            # mixed allowed for all actinia results, thus choosen as default
+            # mixed allowed for all actinia results, thus chosen as default
             if transmission_mode and (
                 transmission_mode not in {"value", "reference", "mixed"}
             ):
