@@ -93,7 +93,7 @@ class ProcessExecutionGrassModule(TestCase):
     def test_post_process_execution_vbuffer(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query v.buffer process
+        Successful query v.buffer process
         """
         resp = self.app.post(
             "/processes/v.buffer/execution",
@@ -129,7 +129,7 @@ class ProcessExecutionGrassModule(TestCase):
     def test_post_process_execution_vbuffer_bbox(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query v.buffer process with given bounding box
+        Successful query v.buffer process with given bounding box
         """
         resp = self.app.post(
             "/processes/v.buffer/execution",
@@ -165,7 +165,7 @@ class ProcessExecutionGrassModule(TestCase):
     def test_post_process_execution_rneighbors(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query r.neighbors module
+        Successful query r.neighbors module
         """
         resp = self.app.post(
             "/processes/r.neighbors/execution",

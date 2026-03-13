@@ -23,7 +23,7 @@ class ConformanceTest(TestCase):
     def test_get_conformance(self) -> None:
         """Test the get method of the /conformance endpoint.
 
-        Succesfull query
+        Successful query
         """
         resp = self.app.get("/conformance")
         assert isinstance(

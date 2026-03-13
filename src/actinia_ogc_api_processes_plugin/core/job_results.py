@@ -140,7 +140,7 @@ def extract_export(pc_el_inout_entry, pc_el_id, resources):
         pc_el_inout_entry["export"]["format"],
     )
 
-    # match resource url + write results formated to dict
+    # match resource url + write results formatted to dict
     export_out_dict = dict()
     export_out_dict_key = (
         f"{pc_el_id}_{export_value}_{pc_el_inout_entry['export']['type']}"

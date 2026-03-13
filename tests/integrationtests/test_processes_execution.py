@@ -65,7 +65,7 @@ class ProcessExecution(TestCase):
     def test_post_process_execution(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query
+        Successful query
         """
         resp = self.app.post(
             "/processes/point_in_polygon/execution",
@@ -101,7 +101,7 @@ class ProcessExecution(TestCase):
     def test_post_process_execution_with_grass_project(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query
+        Successful query
         """
         resp = self.app.post(
             "/processes/point_in_polygon/execution",
@@ -118,7 +118,7 @@ class ProcessExecution(TestCase):
     def test_post_process_execution_with_bbox(self) -> None:
         """Test post method of the /processes/<process_id>/execution endpoint.
 
-        Succesfull query with bbox
+        Successful query with bbox
         """
         resp = self.app.post(
             "/processes/point_in_polygon/execution",
