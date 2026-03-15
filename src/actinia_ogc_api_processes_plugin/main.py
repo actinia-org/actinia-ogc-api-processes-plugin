@@ -47,4 +47,4 @@ if __name__ == "__main__":
     # `python3 -m actinia_ogc_api_processes_plugin.main`
     log.debug("starting app in development mode...")
     flask_app.run(debug=True, use_reloader=False)  # noqa: S201
-    # for production environent use application in wsgi.py
+    # for production environment use application in wsgi.py

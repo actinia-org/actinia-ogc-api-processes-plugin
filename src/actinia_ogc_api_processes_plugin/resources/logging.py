@@ -62,7 +62,7 @@ class CustomJsonFormatter(json.JsonFormatter):
     """Customized formatting of logs as json."""
 
     def add_fields(self, log_record, record, message_dict) -> None:
-        """Add fiels for json log."""
+        """Add fields for json log."""
         super(CustomJsonFormatter, self).add_fields(  # noqa: UP008
             log_record,
             record,

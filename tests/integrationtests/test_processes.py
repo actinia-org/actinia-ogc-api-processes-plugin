@@ -23,7 +23,7 @@ class ProcessesTest(TestCase):
     def test_get_processes(self) -> None:
         """Test the get method of the /processes endpoint.
 
-        Succesfull query
+        Successful query
         """
         resp = self.app.get("/processes", headers=self.HEADER_AUTH)
         assert isinstance(
@@ -56,7 +56,7 @@ class ProcessesTest(TestCase):
     def test_get_processes_limit_parameter(self) -> None:
         """Test the get method of the /processes endpoint with limit.
 
-        Succesfull query
+        Successful query
         """
         resp = self.app.get(
             "/processes",

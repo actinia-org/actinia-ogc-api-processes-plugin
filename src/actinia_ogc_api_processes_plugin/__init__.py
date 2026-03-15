@@ -3,7 +3,7 @@
 
 SPDX-License-Identifier: GPL-3.0-or-later
 
-actinia plugin initalization
+actinia plugin initialization
 """
 
 __license__ = "GPL-3.0-or-later"
