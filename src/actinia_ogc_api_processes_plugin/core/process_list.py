@@ -76,6 +76,12 @@ def get_modules(limit: int | None = None):
             "version"
         ]
         for el in json.loads(resp_grass_modules.text)["processes"]:
+            if not (
+                el["id"].startswith("d.")
+                or el["id"] == "g.gui"
+                or el["id"].startswith("g.gui.")
+            ):
+                continue
             resp_format["processes"].append(
                 {
                     "id": el["id"],
