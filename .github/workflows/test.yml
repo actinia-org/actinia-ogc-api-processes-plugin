@@ -9,9 +9,14 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
     - uses: actions/checkout@v7
     - name: Start containers
