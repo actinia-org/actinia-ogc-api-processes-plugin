@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     - name: Start containers
-      run: docker compose -f "docker/docker-compose.yml" up -d --build
+      run: docker compose -f "docker/docker-compose.yml" up --build --wait --wait-timeout 120
     - name: List running docker
       run: docker ps
     - name: Docker logs actinia-ogc-api-processes-plugin
@@ -30,4 +30,5 @@ jobs:
     - name: Run unit and integration tests
       run: docker exec -t docker-actinia-ogc-api-processes-1 make test
     - name: Stop containers
+      if: always()
       run: docker compose -f "docker/docker-compose.yml" down

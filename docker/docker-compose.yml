@@ -32,6 +32,11 @@ services:
     #  - "8088:8088"
     depends_on:
       - valkey
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8088/api/v3/version', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   valkey:
     volumes:
