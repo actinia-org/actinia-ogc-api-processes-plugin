@@ -25,13 +25,18 @@ services:
 
 
   actinia-core:
-    image: mundialis/actinia:2.15.3
+    image: mundialis/actinia:2.17.5
     volumes:
       - ./actinia-data/resources/actinia-gdi/resource_id-8c88e3aa-3ba2-4050-9c2f-b3ad0a60f880:/actinia_core/resources/actinia-gdi/resource_id-8c88e3aa-3ba2-4050-9c2f-b3ad0a60f880:ro
     # ports:
     #  - "8088:8088"
     depends_on:
       - valkey
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8088/api/v3/version', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   valkey:
     volumes:
